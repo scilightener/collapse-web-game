@@ -2,25 +2,15 @@ namespace GameLogic;
 
 public class Cell
 {
-    private int _countPoints;
-    private Player _owner;
-    public int CountPoints {
-        get
-        {
-            return this._countPoints; 
-        } 
-    }
-    public Player Owner
-    {
-        get
-        {
-            return this._owner;
-        }
-    }
+    public int CountPoints => _countPoints;
+    public Player? Owner => _owner;
 
-    public void AddCountPoints() => _countPoint = _countPoints++;
+    private int _countPoints;
+    private Player? _owner;
+
+    public void AddCountPoints(int count) => _countPoints += count;
 
     public void ResetCountPoints() => _countPoints = 0;
 
-    public void ChangeOwner(Player owner) => _owner = owner;
+    public void ChangeOwnerTo(Player owner) => _owner = owner;
 }
