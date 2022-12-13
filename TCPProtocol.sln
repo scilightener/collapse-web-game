@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XProtocol", "XProtocol\XPro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{4DB9D61F-BE82-428D-8C4A-2282C3BD4C05}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLogic", "GameLogic\GameLogic.csproj", "{3230A299-50FC-466A-AE17-C5001B41F221}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{4DB9D61F-BE82-428D-8C4A-2282C3BD4C05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DB9D61F-BE82-428D-8C4A-2282C3BD4C05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DB9D61F-BE82-428D-8C4A-2282C3BD4C05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3230A299-50FC-466A-AE17-C5001B41F221}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3230A299-50FC-466A-AE17-C5001B41F221}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3230A299-50FC-466A-AE17-C5001B41F221}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3230A299-50FC-466A-AE17-C5001B41F221}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
