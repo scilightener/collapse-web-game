@@ -18,7 +18,7 @@ namespace TCPServer
             var ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());  
             var ipAddress = ipHostInfo.AddressList[0];
 
-            _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _clients = new List<ConnectedClient>();
         }
 
