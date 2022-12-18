@@ -5,19 +5,20 @@ namespace GameLogic;
 public class Player
 {
     public int Id => _id;
-    public string Name => _name;
-    public Color Color => _color;
-    public int MovesCount => _movesCount;
+    public string Name { get; }
 
-    private readonly string _name;
+    public Color Color { get; }
+
+    public int MovesCount { get; private set; }
+
     private readonly int _id;
-    private readonly Color _color;
-    private int _movesCount;
 
     public Player(int id, string name, Color color)
     {
         _id = id;
-        _name = name;
-        _color = color;
+        Name = name;
+        Color = color;
     }
+
+    public void MakeMove() => MovesCount++;
 }
