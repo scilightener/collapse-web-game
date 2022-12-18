@@ -54,7 +54,6 @@ public class Board
         return true;
     }
 
-    // TODO? hashset for cells that are onchanging on the current update iteration; otherwise here's a bug
     private void Update()
     {
         foreach (var cell in _cells)
