@@ -1,18 +1,24 @@
 namespace GameLogic;
 
 using static PlayerStatus;
+using static GameStatus;
 
 public class Board
 {
     public int Rows => _rows;
     public int Columns => _columns;
-    
+    public GameStatus Status { get; private set; } = Started;
+
     private readonly int _rows;
     private readonly int _columns;
     private readonly Cell[,] _cells;
     private readonly Dictionary<int, int> _playersCellsCount = new();
     private readonly Dictionary<int, PlayerStatus> _playersGameStatus = new();
-    private readonly HashSet<Cell> _onChange = new();
+    
+    // set of cells that have been changed during this update
+    // they should not be considered to update again during this iteration
+    private readonly HashSet<Cell> _changedCells = new();
+    private readonly HashSet<Player> _currentPlayers = new();
 
     public Board(int rows, int columns, params Player[] players)
     {
@@ -26,6 +32,7 @@ public class Board
         {
             _playersCellsCount.Add(player.Id, 0);
             _playersGameStatus.Add(player.Id, Unknown);
+            _currentPlayers.Add(player);
         }
     }
 
@@ -38,7 +45,8 @@ public class Board
     {
         if (0 > x || x >= _cells.GetLength(0) ||
             0 > y || y >= _cells.GetLength(1) ||
-            GetPlayerStatus(player) is not Unknown)
+            !_currentPlayers.Contains(player) ||
+            Status == Ended)
             return false;
         var cell = _cells[x, y];
         if (player.MovesCount == 0)
@@ -50,7 +58,8 @@ public class Board
         if ((cell.Owner?.Id ?? -1) != player.Id)
             return false;
         UpdateCell(1, x, y, player);
-        while (!IsBoardOk()) Update();
+        while (!_isBoardOk) Update();
+        _isBoardOk = false;
         return true;
     }
 
@@ -58,38 +67,50 @@ public class Board
     {
         foreach (var cell in _cells)
         {
-            if (cell.CountPoints < 4 || !_onChange.Contains(cell)) continue;
+            if (cell.CountPoints < 4 || _changedCells.Contains(cell)) continue;
             UpdateCell(1, cell.X - 1, cell.Y, cell.Owner!);
             UpdateCell(1, cell.X + 1, cell.Y, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y - 1, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y + 1, cell.Owner!);
             cell.ResetCountPoints();
-            // _onChange.Remove(cell); no need
         }
-        _onChange.Clear();
-        // Thread.Sleep(500); maybe for the drawing latter
+
+        _isBoardOk = _changedCells.Count == 0;
+        _changedCells.Clear();
     }
 
     private bool UpdateCell(int count, int x, int y, Player initiator)
     {
+        void UpdatePlayersInfo(Cell cell, Player player)
+        {
+            if (cell.Owner is null)
+                _playersCellsCount[player.Id]++;
+            else if (cell.Owner != player)
+            {
+                _playersCellsCount[cell.Owner.Id]--;
+                if (_playersCellsCount[cell.Owner.Id] == 0)
+                {
+                    _playersGameStatus[cell.Owner.Id] = Looser;
+                    _currentPlayers.Remove(cell.Owner);
+                    if (_currentPlayers.Count == 1)
+                    {
+                        _playersGameStatus[_currentPlayers.ElementAt(0).Id] = Winner;
+                        Status = Ended;
+                    }
+                }
+            }
+        }
+        
         if (0 > x || x >= _cells.GetLength(0) ||
             0 > y || y >= _cells.GetLength(1))
             return false;
-        var cell = _cells[x, y];
-        if (cell.Owner is null)
-            _playersCellsCount[initiator.Id]++;
-        else if (cell.Owner != initiator)
-        {
-            _playersCellsCount[cell.Owner.Id]--;
-            if (_playersCellsCount[cell.Owner.Id] == 0)
-                _playersGameStatus[cell.Owner.Id] = Looser;
-        }
-        cell.AddCountPoints(count, initiator);
-        if (cell.CountPoints >= 4) _onChange.Add(cell);
+        UpdatePlayersInfo(_cells[x, y], initiator);
+        _cells[x, y].AddCountPoints(count, initiator);
+        /*if (cell.CountPoints >= 4) */_changedCells.Add(_cells[x, y]);
         return true;
     }
 
-    private bool IsBoardOk() => _onChange.Count == 0;
+    private bool _isBoardOk;
 
     // public int this[int x, int y] => _cells[x, y].CountPoints;
     public Cell this[int x, int y] => _cells[x, y]; // only for console coloring; should be replaced with the one above

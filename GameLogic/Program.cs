@@ -10,7 +10,8 @@ namespace GameLogic
             // TODO: test game
             var p1 = new Player(1, "Andrew", Color.Blue);
             var p2 = new Player(2, "Nikita", Color.Green);
-            var board = new Board(x, y, p1, p2);
+            var players = new[] { p1, p2 };
+            var board = new Board(x, y, players);
             var move = 1;
             Console.WriteLine("Commands: 'exit' - exit, 'x y' - make move");
             Console.WriteLine("Please, push your enter button.");
@@ -21,11 +22,8 @@ namespace GameLogic
                 var currentPlayer = move % 2 == 1 ? p1 : p2;
                 if (board.GetPlayerStatus(currentPlayer) == PlayerStatus.Looser)
                 {
-                    Console.ForegroundColor = currentPlayer == p1 ? ConsoleColor.Blue : ConsoleColor.Green;
-                    Console.Write(currentPlayer.Name);
-                    Console.ForegroundColor = ConsoleColor.White;
+                    WriteColorfully(currentPlayer.Name, ConsoleColor.Yellow);
                     Console.WriteLine(" is a looser. GG.");
-                    break;
                 }
                 for (var i = 0; i < x; i++)
                 {
@@ -39,6 +37,8 @@ namespace GameLogic
                     }
                     Console.WriteLine();
                 }
+                if (board.Status == GameStatus.Ended)
+                    break;
 
                 Console.Write($"make your move, ");
                 WriteColorfully(currentPlayer.Name, currentPlayer == p1 ? ConsoleColor.Blue : ConsoleColor.Green);
@@ -46,10 +46,10 @@ namespace GameLogic
                 
                 var cmd = Console.ReadLine()!;
                 if (cmd == "exit") break;
-                var splited = cmd.Split();
+                var splited = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (splited.Length != 2 ||
                     !int.TryParse(splited[0], out var moveX) || !int.TryParse(splited[1], out var moveY) ||
-                    !board.MakeMove(move % 2 == 1 ? p1 : p2, moveX, moveY))
+                    !board.MakeMove(currentPlayer, moveX, moveY))
                 {
                     WriteColorfully("Error. Try again. Push your enter button to continue\n", ConsoleColor.Red);
                     Console.ReadLine();
@@ -57,6 +57,11 @@ namespace GameLogic
                 }
                 move++;
             }
+
+            if (board.Status != GameStatus.Ended) return;
+            var winner = players.First(p => board.GetPlayerStatus(p) == PlayerStatus.Winner);
+            WriteColorfully(winner.Name, ConsoleColor.Magenta);
+            Console.WriteLine(" is a winner! Congrats!");
         }
 
         private static void WriteColorfully(string message, ConsoleColor color)
