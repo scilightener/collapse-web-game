@@ -88,6 +88,7 @@ public class Board
             else if (cell.Owner != player)
             {
                 _playersCellsCount[cell.Owner.Id]--;
+                _playersCellsCount[initiator.Id]++;
                 if (_playersCellsCount[cell.Owner.Id] == 0)
                 {
                     _playersGameStatus[cell.Owner.Id] = Looser;
@@ -106,7 +107,7 @@ public class Board
             return false;
         UpdatePlayersInfo(_cells[x, y], initiator);
         _cells[x, y].AddCountPoints(count, initiator);
-        /*if (cell.CountPoints >= 4) */_changedCells.Add(_cells[x, y]);
+        _changedCells.Add(_cells[x, y]);
         return true;
     }
 
