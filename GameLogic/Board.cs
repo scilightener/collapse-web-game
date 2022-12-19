@@ -11,9 +11,10 @@ public class Board
 
     private readonly int _rows;
     private readonly int _columns;
+    private bool _isBoardOk;
     private readonly Cell[,] _cells;
-    private readonly Dictionary<int, int> _playersCellsCount = new();
-    private readonly Dictionary<int, PlayerStatus> _playersGameStatus = new();
+    private readonly Dictionary<int, int> _playersOwnedCells = new(); // id -> cells count
+    private readonly Dictionary<int, PlayerStatus> _playersGameStatus = new(); // id -> status
     
     // set of cells that have been changed during this update
     // they should not be considered to update again during this iteration
@@ -30,7 +31,7 @@ public class Board
                 _cells[i, j] = new Cell(i, j);
         foreach (var player in players)
         {
-            _playersCellsCount.Add(player.Id, 0);
+            _playersOwnedCells.Add(player.Id, 0);
             _playersGameStatus.Add(player.Id, Unknown);
             _currentPlayers.Add(player);
         }
@@ -84,18 +85,18 @@ public class Board
         void UpdatePlayersInfo(Cell cell, Player player)
         {
             if (cell.Owner is null)
-                _playersCellsCount[player.Id]++;
+                _playersOwnedCells[player.Id]++;
             else if (cell.Owner != player)
             {
-                _playersCellsCount[cell.Owner.Id]--;
-                _playersCellsCount[initiator.Id]++;
-                if (_playersCellsCount[cell.Owner.Id] == 0)
+                _playersOwnedCells[cell.Owner.Id]--;
+                _playersOwnedCells[initiator.Id]++;
+                if (_playersOwnedCells[cell.Owner.Id] == 0)
                 {
                     _playersGameStatus[cell.Owner.Id] = Looser;
                     _currentPlayers.Remove(cell.Owner);
                     if (_currentPlayers.Count == 1)
                     {
-                        _playersGameStatus[_currentPlayers.ElementAt(0).Id] = Winner;
+                        _playersGameStatus[_currentPlayers.First().Id] = Winner;
                         Status = Ended;
                     }
                 }
@@ -110,8 +111,6 @@ public class Board
         _changedCells.Add(_cells[x, y]);
         return true;
     }
-
-    private bool _isBoardOk;
 
     // public int this[int x, int y] => _cells[x, y].CountPoints;
     public Cell this[int x, int y] => _cells[x, y]; // only for console coloring; should be replaced with the one above
