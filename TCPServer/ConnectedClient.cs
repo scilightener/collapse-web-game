@@ -6,18 +6,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using XProtocol;
 using XProtocol.Serializator;
+using XProtocol.XPackets;
 
 namespace TCPServer
 {
     internal class ConnectedClient
     {
+        private XServer _server;
         public Socket Client { get; }
+
+        public int Id { get; set; }
 
         private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
 
-        public ConnectedClient(Socket client)
+        public ConnectedClient(Socket client, XServer server)
         {
             Client = client;
+            _server = server;
 
             Task.Run((Action) ProcessIncomingPackets);
             Task.Run((Action) SendPackets);
@@ -54,6 +59,15 @@ namespace TCPServer
                 case XPacketType.Handshake:
                     ProcessHandshake(packet);
                     break;
+                case XPacketType.Move:
+                    ProcessMove(packet);
+                    break;
+                case XPacketType.Pause:
+                    ProcessPause(packet);
+                    break;
+                case XPacketType.PauseEnded:
+                    ProcessPauseEnded(packet);
+                    break;
                 case XPacketType.Unknown:
                     break;
                 default:
@@ -63,14 +77,55 @@ namespace TCPServer
 
         private void ProcessHandshake(XPacket packet)
         {
-            Console.WriteLine("Recieved handshake packet.");
+            var successfulRegistration = new XPacketSuccessfulRegistration()
+            {
+                Id = _server._clients.Count
+            };
 
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
-            handshake.MagicHandshakeNumber -= 15;
-            
-            Console.WriteLine("Answering..");
+            //TODO: логика добавления игрока в игру
 
-            QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
+            if (_server._clients.Count > 1)
+                foreach (var client in _server._clients)
+                    QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
+        }
+
+        private void ProcessMove(XPacket packet)
+        {
+            var move = XPacketConverter.Deserialize<XPacketMove>(packet);
+
+            //TODO: валидация хода
+            var result = true; // Result validation and move
+
+            var moveResult = new XPacketMoveResult()
+            {
+                Successful = result,
+            };
+
+            QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
+        }
+
+        //Done Send Pause to opponent
+        private void ProcessPause(XPacket packet)
+        {
+            var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
+            var opponent = _server._clients.FirstOrDefault(c => c.Id != Id);
+            if (opponent == null) throw new NullReferenceException("Opponent not found");
+
+            opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Pause, pause).ToPacket());
+        }
+
+        //Done Send Pause Ended to opponent
+        private void ProcessPauseEnded(XPacket packet)
+        {
+            var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
+
+            var opponent = _server._clients.FirstOrDefault(c => c.Id != Id);
+            if (opponent == null) throw new NullReferenceException("Opponent not found");
+
+            opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
         }
 
         public void QueuePacketSend(byte[] packet)
