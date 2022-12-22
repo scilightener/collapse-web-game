@@ -21,5 +21,5 @@ public class Cell
         Owner = initiator;
     }
 
-    public void ResetCountPoints() => CountPoints = 0;
+    public void ResetCountPoints() => CountPoints = Math.Max(CountPoints - 4, 0);
 }

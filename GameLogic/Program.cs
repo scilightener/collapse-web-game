@@ -20,11 +20,6 @@ namespace GameLogic
             {
                 Console.Clear();
                 var currentPlayer = move % 2 == 1 ? p1 : p2;
-                if (board.GetPlayerStatus(currentPlayer) == PlayerStatus.Looser)
-                {
-                    WriteColorfully(currentPlayer.Name, ConsoleColor.Yellow);
-                    Console.WriteLine(" is a looser. GG.");
-                }
                 for (var i = 0; i < x; i++)
                 {
                     for (var j = 0; j < y; j++)
@@ -36,6 +31,11 @@ namespace GameLogic
                             cell.Owner == p2 ? ConsoleColor.Green : ConsoleColor.White);
                     }
                     Console.WriteLine();
+                }
+                if (board.GetPlayerStatus(currentPlayer) == PlayerStatus.Looser)
+                {
+                    WriteColorfully(currentPlayer.Name, ConsoleColor.Yellow);
+                    Console.WriteLine(" is a looser. GG.");
                 }
                 if (board.Status == GameStatus.Ended)
                     break;
