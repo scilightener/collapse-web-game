@@ -3,6 +3,13 @@
     public enum XPacketType
     {
         Unknown,
-        Handshake
+        Handshake,
+        SuccessfulRegistration,
+        StartGame,
+        Move,
+        MoveResult,
+        Pause,
+        PauseEnded,
+        Winner
     }
 }
