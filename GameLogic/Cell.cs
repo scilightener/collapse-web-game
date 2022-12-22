@@ -2,15 +2,24 @@ namespace GameLogic;
 
 public class Cell
 {
-    public int CountPoints => _countPoints;
-    public Player? Owner => _owner;
+    public int X { get; }
+    public int Y { get; }
+    public int CountPoints { get; private set; }
 
-    private int _countPoints;
-    private Player? _owner;
+    public Player? Owner { get; private set; }
 
-    public void AddCountPoints(int count) => _countPoints += count;
+    public Cell(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
 
-    public void ResetCountPoints() => _countPoints = 0;
+    // Parametrized with initiator to ensure that there will be no cells with points > 0 and no owner
+    public void AddCountPoints(int count, Player initiator)
+    {
+        CountPoints += count;
+        Owner = initiator;
+    }
 
-    public void ChangeOwnerTo(Player owner) => _owner = owner;
+    public void ResetCountPoints() => CountPoints = Math.Max(CountPoints - 4, 0);
 }
