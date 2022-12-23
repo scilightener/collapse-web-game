@@ -14,5 +14,12 @@ public class GameProvider
     }
 
     internal bool MakeMove(int playerID, int x, int y)
-        => _board.MakeMove(_players.FirstOrDefault(p => p.Id == playerID), x, y);
+    {
+        var currentPlayer = movesCount % 2 == 1 ? _players[0] : _players[1];
+        if (currentPlayer.Id != playerID) return false;
+        movesCount++;
+        return _board.MakeMove(currentPlayer, x, y);
+    }
+
+    public bool IsGameEnded => _board.Status == GameStatus.Ended;
 }

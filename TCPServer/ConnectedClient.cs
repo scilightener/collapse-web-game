@@ -100,6 +100,7 @@ namespace TCPServer
 
             //TODO: валидация хода
             var result = _game.MakeMove(Id, move.X, move.Y); // Result validation and move
+            if (_game.IsGameEnded) EndGameForAllPlayers();
 
             var moveResult = new XPacketMoveResult()
             {
@@ -129,6 +130,11 @@ namespace TCPServer
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
+        }
+
+        private void EndGameForAllPlayers()
+        {
+
         }
 
         public void QueuePacketSend(byte[] packet)
