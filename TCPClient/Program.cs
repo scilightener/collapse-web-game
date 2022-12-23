@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using XProtocol.Serializator;
+using XProtocol;
 
 namespace TCPClient
 {
