@@ -107,7 +107,7 @@ namespace TCPServer
             };
 
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
-            Disconnect();
+            if (!result) Disconnect();
         }
 
         //Done Send Pause to opponent

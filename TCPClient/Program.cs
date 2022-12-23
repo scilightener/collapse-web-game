@@ -18,9 +18,6 @@ namespace TCPClient
             //client.OnPacketRecieve += OnPacketRecieve;
             client.Connect("127.0.0.1", 4910);
 
-            var rand = new Random();
-            _handshakeMagic = rand.Next();
-
             Thread.Sleep(1000);
             
             Console.WriteLine("Sending handshake packet..");
