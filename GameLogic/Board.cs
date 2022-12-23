@@ -42,10 +42,11 @@ public class Board
 
     // Returns whether it's possible for player to make the move
     // And if so, updates the board according to the game's rules
-    public bool MakeMove(Player player, int x, int y)
+    public bool MakeMove(Player? player, int x, int y)
     {
         if (0 > x || x >= _cells.GetLength(0) ||
             0 > y || y >= _cells.GetLength(1) ||
+            player is null ||
             !_currentPlayers.Contains(player) ||
             Status == Ended)
             return false;
