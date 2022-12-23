@@ -13,16 +13,18 @@ namespace TCPServer
     internal class ConnectedClient
     {
         private XServer _server;
+        private GameProvider _game;
         public Socket Client { get; }
 
         public int Id { get; set; }
 
         private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
 
-        public ConnectedClient(Socket client, XServer server)
+        public ConnectedClient(Socket client, XServer server, GameProvider gp)
         {
             Client = client;
             _server = server;
+            _game = gp;
 
             Task.Run((Action) ProcessIncomingPackets);
             Task.Run((Action) SendPackets);
@@ -97,7 +99,7 @@ namespace TCPServer
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
 
             //TODO: валидация хода
-            var result = true; // Result validation and move
+            var result = _game.MakeMove(Id, move.X, move.Y); // Result validation and move
 
             var moveResult = new XPacketMoveResult()
             {
@@ -105,6 +107,7 @@ namespace TCPServer
             };
 
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
+            Disconnect();
         }
 
         //Done Send Pause to opponent
@@ -153,6 +156,11 @@ namespace TCPServer
 
                 Thread.Sleep(100);
             }
+        }
+
+        public void Disconnect()
+        {
+            Client.Disconnect(false);
         }
     }
 }
