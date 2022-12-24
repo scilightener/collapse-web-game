@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 using XProtocol;
 using XProtocol.Serializator;
 using XProtocol.XPackets;
@@ -18,7 +13,7 @@ namespace TCPServer
 
         public int Id { get; set; }
 
-        private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
+        private readonly Queue<byte[]> _packetSendingQueue = new();
 
         public ConnectedClient(Socket client, XServer server, GameProvider gp)
         {
@@ -26,8 +21,8 @@ namespace TCPServer
             _server = server;
             _game = gp;
 
-            Task.Run((Action) ProcessIncomingPackets);
-            Task.Run((Action) SendPackets);
+            Task.Run(ProcessIncomingPackets);
+            Task.Run(SendPackets);
         }
 
         private void ProcessIncomingPackets()
@@ -90,17 +85,17 @@ namespace TCPServer
                 .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
             if (_server._clients.Count > 1)
                 foreach (var client in _server._clients)
-                    QueuePacketSend(XPacketConverter
+                    client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
         }
 
+        //Done process player move
         private void ProcessMove(XPacket packet)
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
 
-            //TODO: валидация хода
             var result = _game.MakeMove(Id, move.X, move.Y); // Result validation and move
-            if (_game.IsGameEnded) EndGameForAllPlayers();
+            if (_game.IsGameEnded) EndGameForAllPlayers(_game.GetWinnerId());
 
             var moveResult = new XPacketMoveResult()
             {
@@ -132,9 +127,11 @@ namespace TCPServer
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
         }
 
-        private void EndGameForAllPlayers()
+        private void EndGameForAllPlayers(int id)
         {
-
+            foreach (var client in _server._clients)
+                client.QueuePacketSend(XPacketConverter
+                    .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = id }).ToPacket());
         }
 
         public void QueuePacketSend(byte[] packet)
@@ -166,7 +163,7 @@ namespace TCPServer
 
         public void Disconnect()
         {
-            Client.Disconnect(false);
+            Client.Shutdown(SocketShutdown.Both);
         }
     }
 }

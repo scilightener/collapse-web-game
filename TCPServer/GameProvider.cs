@@ -22,4 +22,6 @@ public class GameProvider
     }
 
     public bool IsGameEnded => _board.Status == GameStatus.Ended;
+
+    public int GetWinnerId() => IsGameEnded ? _players.First(p => _board.GetPlayerStatus(p) == PlayerStatus.Winner).Id : -1;
 }

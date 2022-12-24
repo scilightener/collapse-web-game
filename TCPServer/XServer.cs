@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 
 namespace TCPServer
@@ -40,7 +38,7 @@ namespace TCPServer
             }
 
             _stopListening = true;
-            _socket.Shutdown(SocketShutdown.Both);
+                
             _listening = false;
         }
 
