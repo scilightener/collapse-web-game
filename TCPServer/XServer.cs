@@ -7,6 +7,7 @@ namespace TCPServer
     {
         private readonly Socket _socket;
         internal readonly List<ConnectedClient> _clients;
+        internal GameProvider gp;
 
         private bool _listening;
         private bool _stopListening;
@@ -60,7 +61,7 @@ namespace TCPServer
 
                 Console.WriteLine($"[!] Accepted client from {(IPEndPoint) client.RemoteEndPoint}");
 
-                var c = new ConnectedClient(client, this);
+                var c = new ConnectedClient(client, this, gp);
                 _clients.Add(c);
             }
         }
