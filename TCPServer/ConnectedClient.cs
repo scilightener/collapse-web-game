@@ -6,7 +6,7 @@ using XProtocol.XPackets;
 
 namespace TCPServer
 {
-    internal class ConnectedClient
+    internal class ConnectedClient : IDisposable
     {
         private readonly XServer _server;
         private Socket Client { get; }
@@ -28,7 +28,6 @@ namespace TCPServer
         {
             while (true) // Слушаем пакеты, пока клиент не отключится.
             {
-                if (!Client.Connected) Console.WriteLine("client disconnected");
                 var buff = new byte[256]; // Максимальный размер пакета - 256 байт.
                 Client.Receive(buff);
 
@@ -101,6 +100,8 @@ namespace TCPServer
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
             if (!result) Disconnect(); // TODO: disconnect player
+            if (_server.Gp.IsGameEnded)
+                EndGameForAllPlayers();
         }
 
         //Done Send Pause to opponent
@@ -124,11 +125,15 @@ namespace TCPServer
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
         }
 
-        private void EndGameForAllPlayers(int id)
+        private void EndGameForAllPlayers()
         {
             foreach (var client in _server.Clients)
+            {
                 client.QueuePacketSend(XPacketConverter
-                    .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = id }).ToPacket());
+                    .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = _server.Gp.GetWinnerId() })
+                    .ToPacket());
+                client.Disconnect();
+            }
         }
 
         private void QueuePacketSend(byte[] packet)
@@ -158,7 +163,9 @@ namespace TCPServer
             }
         }
 
-        private void Disconnect()
+        private void Disconnect() => Dispose();
+
+        public void Dispose()
         {
             Client.Dispose();
         }

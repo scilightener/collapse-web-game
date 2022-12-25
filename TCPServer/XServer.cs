@@ -61,18 +61,18 @@ namespace TCPServer
                 } catch { return; }
 
                 Console.WriteLine($"[!] Accepted client from {client.RemoteEndPoint as IPEndPoint}");
-                var c = new ConnectedClient(client, this, AddPlayerToGame());
+                var c = new ConnectedClient(client, this, CreateNewPlayer());
                 Clients.Add(c);
             }
         }
 
-        private Player AddPlayerToGame()
+        private Player CreateNewPlayer()
         {
             var id = Clients.Count;
             var color = GameProvider.GetColorForPlayer(id);
             var player = new Player(id, $"Player{id}", color);
 
-            if (Clients.Count > 0)
+            if (Clients.Count == 1)
                 Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).ToArray());
             return player;
         }

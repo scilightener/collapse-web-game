@@ -66,7 +66,7 @@ namespace TCPClient
                 }
 
                 var packet = _packetSendingQueue.Dequeue();
-                _socket.Send(packet);
+                await _socket.SendAsync(packet);
 
                 Thread.Sleep(100);
             }
