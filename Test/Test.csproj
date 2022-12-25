@@ -48,11 +48,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\XProtocol\XProtocol.csproj">
-      <Project>{b510589e-929e-47fc-9908-01f631ffb574}</Project>
-      <Name>XProtocol</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

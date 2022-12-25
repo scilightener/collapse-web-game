@@ -1,7 +1,5 @@
-﻿using System;
-using System.Threading;
-using XProtocol;
 using XProtocol.Serializator;
+using XProtocol;
 
 namespace TCPClient
 {
@@ -17,9 +15,6 @@ namespace TCPClient
             var client = new XClient();
             //client.OnPacketRecieve += OnPacketRecieve;
             client.Connect("127.0.0.1", 4910);
-
-            var rand = new Random();
-            _handshakeMagic = rand.Next();
 
             Thread.Sleep(1000);
             

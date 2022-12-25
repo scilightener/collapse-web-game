@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
 using XProtocol;
 using XProtocol.Serializator;
 using XProtocol.XPackets;
@@ -24,8 +19,8 @@ namespace TCPServer
             Client = client;
             _server = server;
 
-            Task.Run((Action) ProcessIncomingPackets);
-            Task.Run((Action) SendPackets);
+            Task.Run(ProcessIncomingPackets);
+            Task.Run(SendPackets);
         }
 
         private void ProcessIncomingPackets()
@@ -153,6 +148,11 @@ namespace TCPServer
 
                 Thread.Sleep(100);
             }
+        }
+
+        public void Disconnect()
+        {
+            Client.Shutdown(SocketShutdown.Both);
         }
     }
 }
