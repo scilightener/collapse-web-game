@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using GameLogic;
+using System.Net.Sockets;
 using XProtocol;
 using XProtocol.Serializator;
 using XProtocol.XPackets;
@@ -9,16 +10,16 @@ namespace TCPServer
     {
         private XServer _server;
         public Socket Client { get; }
-        private GameProvider _gp;
         public int Id { get; set; }
+        internal Player player { get; private set; }
 
         private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
 
-        public ConnectedClient(Socket client, XServer server, GameProvider gp)
+        public ConnectedClient(Socket client, XServer server, Player player)
         {
             Client = client;
             _server = server;
-            _gp = gp; 
+            this.player = player;
 
             Task.Run(ProcessIncomingPackets);
             Task.Run(SendPackets);

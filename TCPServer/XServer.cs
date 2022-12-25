@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using GameLogic;
+using System.Net;
 using System.Net.Sockets;
 
 namespace TCPServer
@@ -59,9 +60,13 @@ namespace TCPServer
                     client = _socket.Accept();
                 } catch { return; }
 
-                Console.WriteLine($"[!] Accepted client from {(IPEndPoint) client.RemoteEndPoint}");
+                Console.WriteLine($"[!] Accepted client from {client.RemoteEndPoint as IPEndPoint}");
 
-                var c = new ConnectedClient(client, this, gp);
+                var id = clients.Count;
+                var color = GameProvider.GetColorForPlayer(id);
+                var player = new Player(id, $"Player{id}", color);
+
+                var c = new ConnectedClient(client, this, player);
                 clients.Add(c);
             }
         }

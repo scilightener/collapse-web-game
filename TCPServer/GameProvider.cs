@@ -1,4 +1,5 @@
 ﻿using GameLogic;
+using System.Drawing;
 
 namespace TCPServer;
 
@@ -24,4 +25,14 @@ public class GameProvider
     public bool IsGameEnded => _board.Status == GameStatus.Ended;
 
     public int GetWinnerId() => IsGameEnded ? _players.First(p => _board.GetPlayerStatus(p) == PlayerStatus.Winner).Id : -1;
+
+    public static Color GetColorForPlayer(int id) => id switch
+    {
+        0 => Color.Yellow,
+        1 => Color.Green,
+        2 => Color.Blue,
+        3 => Color.Brown,
+        4 => Color.Red,
+        _ => Color.White,
+    };
 }
