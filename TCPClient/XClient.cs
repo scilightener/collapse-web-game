@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 
 namespace TCPClient
@@ -71,5 +71,86 @@ namespace TCPClient
                 Thread.Sleep(100);
             }
         }
+
+        //private void OnPacketRecieve(byte[] packet)
+        //{
+        //    var parsed = XPacket.Parse(packet);
+
+        //    if (parsed != null)
+        //    {
+        //        ProcessIncomingPacket(parsed);
+        //    }
+        //}
+
+        //private void ProcessIncomingPacket(XPacket packet)
+        //{
+        //    var type = XPacketTypeManager.GetTypeFromPacket(packet);
+
+        //    switch (type)
+        //    {
+        //        case XPacketType.SuccessfulRegistration:
+        //            ProcessSuccessfulRegistration(packet);
+        //            break;
+        //        case XPacketType.StartGame:
+        //            ProcessStartGame(packet);
+        //            break;
+        //        case XPacketType.MoveResult:
+        //            ProcessMoveResult(packet);
+        //            break;
+        //        case XPacketType.Pause:
+        //            ProcessPause(packet);
+        //            break;
+        //        case XPacketType.PauseEnded:
+        //            ProcessPauseEnded(packet);
+        //            break;
+        //        case XPacketType.Winner:
+        //            ProcessWinner(packet);
+        //            break;
+        //        case XPacketType.Unknown:
+        //            break;
+        //        default:
+        //            throw new ArgumentOutOfRangeException();
+        //    }
+        //}
+
+        //private void ProcessSuccessfulRegistration(XPacket packet)
+        //{
+        //    var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
+        //    //TODO: go to game
+
+        //}
+
+        //private void ProcessStartGame(XPacket packet)
+        //{
+        //    var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+
+        //    QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+        //}
+
+        //private void ProcessMoveResult(XPacket packet)
+        //{
+        //    var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+
+        //    QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+        //}
+
+        //private void ProcessPause(XPacket packet)
+        //{
+        //    var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
+        //    //TODO: Pause game
+        //}
+
+        //private void ProcessPauseEnded(XPacket packet)
+        //{
+        //    var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
+        //    //TODO: Unpaused game
+        //}
+
+        //private void ProcessWinner(XPacket packet)
+        //{
+        //    var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+
+        //    QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+        //}
     }
 }

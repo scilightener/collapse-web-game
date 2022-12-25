@@ -13,13 +13,14 @@ namespace Test
         public double TestDouble;
 
         [XField(2)]
-        public bool TestBoolean;
+        public string TestBoolean;
     }
 
     internal class Program
     {
         private static void Main()
         {
+
             Console.Title = "";
             Console.ForegroundColor = ConsoleColor.White;
 
