@@ -100,7 +100,7 @@ namespace TCPServer
             {
                 Successful = result,
             };
-            Console.WriteLine($"Received Move from {Id}");
+            Console.WriteLine($"Received Move from {Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
         }
 

@@ -114,14 +114,15 @@ namespace CollapseGameFormsApp
         {
             var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
 
-                client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            // client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
         private void ProcessMoveResult(XPacket packet)
         {
             var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
 
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+
+            //client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
         private void ProcessPause(XPacket packet)
@@ -140,7 +141,7 @@ namespace CollapseGameFormsApp
         {
             var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
 
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            //client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
