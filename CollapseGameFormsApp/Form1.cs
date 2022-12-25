@@ -114,7 +114,6 @@ namespace CollapseGameFormsApp
         {
             var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
 
-                client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
         private void ProcessMoveResult(XPacket packet)
