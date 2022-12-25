@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace TCPClient
 {
-    public class XClient
+    public class XClient : IDisposable
     {
         public Action<byte[]> OnPacketReceive { get; set; }
 
@@ -17,15 +17,15 @@ namespace TCPClient
             Connect(new IPEndPoint(IPAddress.Parse(ip), port));
         }
 
-        public void Connect(IPEndPoint server)
+        private void Connect(IPEndPoint server)
         {
             _serverEndPoint = server;
 
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _socket.Connect(_serverEndPoint);
 
-            Task.Run((Action) RecievePackets);
-            Task.Run((Action) SendPackets);
+            Task.Run(ReceivePackets);
+            Task.Run(SendPackets);
         }
 
         public void QueuePacketSend(byte[] packet)
@@ -38,7 +38,7 @@ namespace TCPClient
             _packetSendingQueue.Enqueue(packet);
         }
 
-        private void RecievePackets()
+        private void ReceivePackets()
         {
             while (true)
             {
@@ -72,7 +72,7 @@ namespace TCPClient
             }
         }
 
-        //private void OnPacketRecieve(byte[] packet)
+        //private void OnPacketReceive(byte[] packet)
         //{
         //    var parsed = XPacket.Parse(packet);
 
@@ -152,5 +152,12 @@ namespace TCPClient
 
         //    QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         //}
+        public void Disconnect() => Dispose();
+
+        public void Dispose()
+        {
+            _socket.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

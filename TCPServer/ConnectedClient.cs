@@ -1,25 +1,24 @@
 ﻿using GameLogic;
 using System.Net.Sockets;
 using XProtocol;
-using XProtocol.Serializator;
+using XProtocol.Serializer;
 using XProtocol.XPackets;
 
 namespace TCPServer
 {
     internal class ConnectedClient
     {
-        private XServer _server;
-        public Socket Client { get; }
-        public int Id { get; set; }
-        internal Player player { get; private set; }
+        private readonly XServer _server;
+        private Socket Client { get; }
+        private Player Player { get; }
 
-        private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
+        private readonly Queue<byte[]> _packetSendingQueue = new();
 
         public ConnectedClient(Socket client, XServer server, Player player)
         {
             Client = client;
             _server = server;
-            this.player = player;
+            Player = player;
 
             Task.Run(ProcessIncomingPackets);
             Task.Run(SendPackets);
@@ -29,6 +28,7 @@ namespace TCPServer
         {
             while (true) // Слушаем пакеты, пока клиент не отключится.
             {
+                if (!Client.Connected) Console.WriteLine("client disconnected");
                 var buff = new byte[256]; // Максимальный размер пакета - 256 байт.
                 Client.Receive(buff);
 
@@ -74,11 +74,10 @@ namespace TCPServer
 
         private void ProcessHandshake(XPacket packet)
         {
-            var successfulRegistration = new XPacketSuccessfulRegistration()
+            var successfulRegistration = new XPacketSuccessfulRegistration
             {
-                Id = _server.clients.Count
+                Id = Player.Id
             };
-            Id = _server.clients.Count;
             //TODO: логика добавления игрока в игру
 
             QueuePacketSend(XPacketConverter
@@ -87,7 +86,7 @@ namespace TCPServer
                 foreach (var client in _server.clients)
                     client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
-            Console.WriteLine($"Received Handshake from {Id}");
+            Console.WriteLine($"Received Handshake from {Player.Id}");
         }
 
         private void ProcessMove(XPacket packet)
@@ -101,7 +100,7 @@ namespace TCPServer
             {
                 Successful = result,
             };
-            Console.WriteLine($"Received Move from {Id} with {move.X}, {move.Y}");
+            Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
         }
 
@@ -109,7 +108,7 @@ namespace TCPServer
         private void ProcessPause(XPacket packet)
         {
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            var opponent = _server.clients.FirstOrDefault(c => c.Id != Id);
+            var opponent = _server.clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Pause, pause).ToPacket());
@@ -120,7 +119,7 @@ namespace TCPServer
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
 
-            var opponent = _server.clients.FirstOrDefault(c => c.Id != Id);
+            var opponent = _server.clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
@@ -133,7 +132,7 @@ namespace TCPServer
                     .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = id }).ToPacket());
         }
 
-        public void QueuePacketSend(byte[] packet)
+        private void QueuePacketSend(byte[] packet)
         {
             if (packet.Length > 256)
             {
@@ -163,6 +162,7 @@ namespace TCPServer
         public void Disconnect()
         {
             Client.Shutdown(SocketShutdown.Both);
+            Client.Disconnect(true);
         }
     }
 }

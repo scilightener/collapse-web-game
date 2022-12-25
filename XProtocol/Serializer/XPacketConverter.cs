@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace XProtocol.Serializator
+namespace XProtocol.Serializer
 {
-    public class XPacketConverter
+    public abstract class XPacketConverter
     {
         public static XPacket Serialize(XPacketType type, object obj, bool strict = false)
         {
@@ -13,7 +10,7 @@ namespace XProtocol.Serializator
             return Serialize(t.Item1, t.Item2, obj, strict);
         }
 
-        public static XPacket Serialize(byte type, byte subtype, object obj, bool strict = false)
+        private static XPacket Serialize(byte type, byte subtype, object obj, bool strict = false)
         {
             var fields = GetFields(obj.GetType());
 
@@ -36,7 +33,7 @@ namespace XProtocol.Serializator
 
             foreach (var field in fields)
             {
-                packet.SetValue(field.Item2, field.Item1.GetValue(obj));
+                packet.SetValue(field.Item2, field.Item1.GetValue(obj)!);
             }
 
             return packet;
@@ -94,7 +91,7 @@ namespace XProtocol.Serializator
                                      BindingFlags.NonPublic |
                                      BindingFlags.Public)
                 .Where(field => field.GetCustomAttribute<XFieldAttribute>() != null)
-                .Select(field => Tuple.Create(field, field.GetCustomAttribute<XFieldAttribute>().FieldID))
+                .Select(field => Tuple.Create(field, field.GetCustomAttribute<XFieldAttribute>()!.FieldID))
                 .ToList();
         }
     }

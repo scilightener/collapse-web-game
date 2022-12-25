@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XProtocol.Serializator
+namespace XProtocol.Serializer
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class XFieldAttribute : Attribute

@@ -1,4 +1,4 @@
-﻿using XProtocol.Serializator;
+﻿using XProtocol.Serializer;
 
 namespace XProtocol.XPackets
 {

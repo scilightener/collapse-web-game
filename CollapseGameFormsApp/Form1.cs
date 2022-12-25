@@ -1,43 +1,39 @@
 using TCPClient;
-using XProtocol.Serializator;
+using XProtocol.Serializer;
 using XProtocol.XPackets;
 using XProtocol;
-using System.Reflection.Metadata.Ecma335;
 
 namespace CollapseGameFormsApp
 {
     public partial class Form1 : Form
     {
-        private XClient client;
-        private Button[] buttons;
-        private Dictionary<Button, XPacketMove> packets;
+        private readonly XClient _client;
+        private Button[] _buttons;
         
         public Form1()
         {
             InitializeComponent();
-            client = new XClient();
             InitializeButtons();
-            foreach(var but in buttons!)
+            _client = new XClient();
+            foreach(var but in _buttons!)
                 but.Visible = false;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             button1.Visible = false;
-            client.Connect("127.0.0.1", 4910);
-            client.OnPacketReceive = OnPacketRecieve;
-            client.QueuePacketSend(
+            _client.Connect("127.0.0.1", 4910);
+            _client.OnPacketReceive = OnPacketReceive;
+            _client.QueuePacketSend(
                 XPacketConverter.Serialize(
                     XPacketType.Handshake,
-                    new XPacketHandshake
-                    {
-                    })
+                    new XPacketHandshake())
                     .ToPacket());
         }
 
         private void InitializeButtons()
         {
-            buttons = new[] {
+            _buttons = new[] {
                 button2, button3, button4, button5, button6,
                 button7, button8, button9, button10, button11,
                 button12, button13, button14, button15, button16,
@@ -48,17 +44,17 @@ namespace CollapseGameFormsApp
 
         private void OnClickGameField(int x, int y)
         {
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
+            _client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
             {
-                X= x, Y= y
+                X = x, Y = y
             }).ToPacket());
         }
 
 
-        private void OnPacketRecieve(byte[] packet)
+        private void OnPacketReceive(byte[] packet)
         {
             var parsed = XPacket.Parse(packet);
-
+            
             if (parsed != null)
             {
                 ProcessIncomingPacket(parsed);
@@ -110,11 +106,11 @@ namespace CollapseGameFormsApp
         private void ProcessStartGame(XPacket packet)
         {
             //this.BackgroundImage = 
-            //RunInUI(() =>
-            //{
-            //    foreach (var button in buttons)
-            //        button.Visible = true;
-            //});
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = true;
+            });
             // client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
