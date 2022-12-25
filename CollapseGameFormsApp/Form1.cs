@@ -98,17 +98,23 @@ namespace CollapseGameFormsApp
         private void ProcessSuccessfulRegistration(XPacket packet)
         {
             var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
-            foreach (var button in buttons)
-                button.Visible = true;
+            RunInUI(() =>
+            {
+                foreach (var button in buttons)
+                    button.Visible = true;
+            });
+            
             //TODO: go to game
 
         }
+
+        private void RunInUI(Action action) => BeginInvoke(action);
 
         private void ProcessStartGame(XPacket packet)
         {
             var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
 
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+                client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
         private void ProcessMoveResult(XPacket packet)

@@ -9,15 +9,16 @@ namespace TCPServer
     {
         private XServer _server;
         public Socket Client { get; }
-
+        private GameProvider _gp;
         public int Id { get; set; }
 
         private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
 
-        public ConnectedClient(Socket client, XServer server)
+        public ConnectedClient(Socket client, XServer server, GameProvider gp)
         {
             Client = client;
             _server = server;
+            _gp = gp; 
 
             Task.Run(ProcessIncomingPackets);
             Task.Run(SendPackets);
@@ -76,7 +77,7 @@ namespace TCPServer
             {
                 Id = _server.clients.Count
             };
-
+            Id = _server.clients.Count;
             //TODO: логика добавления игрока в игру
 
             QueuePacketSend(XPacketConverter
@@ -85,6 +86,7 @@ namespace TCPServer
                 foreach (var client in _server.clients)
                     client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
+            Console.WriteLine($"Received Handshake from {Id}");
         }
 
         private void ProcessMove(XPacket packet)
@@ -98,7 +100,7 @@ namespace TCPServer
             {
                 Successful = result,
             };
-
+            Console.WriteLine($"Received Move from {Id}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
         }
 
