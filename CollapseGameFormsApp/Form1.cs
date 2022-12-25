@@ -2,6 +2,7 @@ using TCPClient;
 using XProtocol.Serializator;
 using XProtocol.XPackets;
 using XProtocol;
+using System.Reflection.Metadata.Ecma335;
 
 namespace CollapseGameFormsApp
 {
@@ -98,11 +99,7 @@ namespace CollapseGameFormsApp
         private void ProcessSuccessfulRegistration(XPacket packet)
         {
             var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
-            RunInUI(() =>
-            {
-                foreach (var button in buttons)
-                    button.Visible = true;
-            });
+            
             
             //TODO: go to game
 
@@ -112,8 +109,12 @@ namespace CollapseGameFormsApp
 
         private void ProcessStartGame(XPacket packet)
         {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
-
+            //this.BackgroundImage = 
+            //RunInUI(() =>
+            //{
+            //    foreach (var button in buttons)
+            //        button.Visible = true;
+            //});
             // client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
@@ -144,6 +145,7 @@ namespace CollapseGameFormsApp
             //client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
 
+        private void button2_Hover(object sender, EventArgs e) { }
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
 
         private void button3_Click(object sender, EventArgs e) => OnClickGameField(0, 1);
