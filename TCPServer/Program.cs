@@ -1,17 +1,14 @@
-﻿using System;
+﻿namespace TCPServer;
 
-namespace TCPServer
+internal class Program
 {
-    internal class Program
+    private static void Main()
     {
-        private static void Main()
-        {
-            Console.Title = "XServer";
-            Console.ForegroundColor = ConsoleColor.White;
+        Console.Title = "XServer";
+        Console.ForegroundColor = ConsoleColor.White;
 
-            var server = new XServer();
-            server.Start();
-            server.AcceptClients();
-        }
+        var server = new XServer();
+        server.Start();
+        server.AcceptClients();
     }
 }

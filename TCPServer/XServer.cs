@@ -7,8 +7,8 @@ namespace TCPServer
     internal class XServer
     {
         private readonly Socket _socket;
-        internal readonly List<ConnectedClient> clients;
-        internal GameProvider gp;
+        internal readonly List<ConnectedClient> Clients;
+        internal GameProvider Gp;
 
         private bool _listening;
         private bool _stopListening;
@@ -16,7 +16,7 @@ namespace TCPServer
         public XServer()
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clients = new List<ConnectedClient>();
+            Clients = new List<ConnectedClient>();
         }
 
         public void Start()
@@ -61,14 +61,20 @@ namespace TCPServer
                 } catch { return; }
 
                 Console.WriteLine($"[!] Accepted client from {client.RemoteEndPoint as IPEndPoint}");
-
-                var id = clients.Count;
-                var color = GameProvider.GetColorForPlayer(id);
-                var player = new Player(id, $"Player{id}", color);
-
-                var c = new ConnectedClient(client, this, player);
-                clients.Add(c);
+                var c = new ConnectedClient(client, this, AddPlayerToGame());
+                Clients.Add(c);
             }
+        }
+
+        private Player AddPlayerToGame()
+        {
+            var id = Clients.Count;
+            var color = GameProvider.GetColorForPlayer(id);
+            var player = new Player(id, $"Player{id}", color);
+
+            if (Clients.Count > 0)
+                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).ToArray());
+            return player;
         }
     }
 }

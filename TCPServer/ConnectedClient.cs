@@ -10,7 +10,7 @@ namespace TCPServer
     {
         private readonly XServer _server;
         private Socket Client { get; }
-        private Player Player { get; }
+        internal Player Player { get; }
 
         private readonly Queue<byte[]> _packetSendingQueue = new();
 
@@ -82,8 +82,8 @@ namespace TCPServer
 
             QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
-            if (_server.clients.Count > 1)
-                foreach (var client in _server.clients)
+            if (_server.Clients.Count > 1)
+                foreach (var client in _server.Clients)
                     client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
             Console.WriteLine($"Received Handshake from {Player.Id}");
@@ -92,23 +92,22 @@ namespace TCPServer
         private void ProcessMove(XPacket packet)
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
+            var result = _server.Gp.MakeMove(Player.Id, move.X, move.Y);
 
-            //TODO: валидация хода
-            var result = true; // Result validation and move
-
-            var moveResult = new XPacketMoveResult()
+            var moveResult = new XPacketMoveResult
             {
                 Successful = result,
             };
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
+            if (!result) Disconnect(); // TODO: disconnect player
         }
 
         //Done Send Pause to opponent
         private void ProcessPause(XPacket packet)
         {
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            var opponent = _server.clients.FirstOrDefault(c => c.Player.Id != Player.Id);
+            var opponent = _server.Clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Pause, pause).ToPacket());
@@ -119,7 +118,7 @@ namespace TCPServer
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
 
-            var opponent = _server.clients.FirstOrDefault(c => c.Player.Id != Player.Id);
+            var opponent = _server.Clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
@@ -127,7 +126,7 @@ namespace TCPServer
 
         private void EndGameForAllPlayers(int id)
         {
-            foreach (var client in _server.clients)
+            foreach (var client in _server.Clients)
                 client.QueuePacketSend(XPacketConverter
                     .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = id }).ToPacket());
         }
@@ -159,10 +158,9 @@ namespace TCPServer
             }
         }
 
-        public void Disconnect()
+        private void Disconnect()
         {
-            Client.Shutdown(SocketShutdown.Both);
-            Client.Disconnect(true);
+            Client.Dispose();
         }
     }
 }
