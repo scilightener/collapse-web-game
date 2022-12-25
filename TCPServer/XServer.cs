@@ -6,7 +6,7 @@ namespace TCPServer
     internal class XServer
     {
         private readonly Socket _socket;
-        internal readonly List<ConnectedClient> _clients;
+        internal readonly List<ConnectedClient> clients;
         internal GameProvider gp;
 
         private bool _listening;
@@ -15,7 +15,7 @@ namespace TCPServer
         public XServer()
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _clients = new List<ConnectedClient>();
+            clients = new List<ConnectedClient>();
         }
 
         public void Start()
@@ -62,7 +62,7 @@ namespace TCPServer
                 Console.WriteLine($"[!] Accepted client from {(IPEndPoint) client.RemoteEndPoint}");
 
                 var c = new ConnectedClient(client, this, gp);
-                _clients.Add(c);
+                clients.Add(c);
             }
         }
     }

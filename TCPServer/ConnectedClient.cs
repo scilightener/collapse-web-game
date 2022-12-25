@@ -74,16 +74,16 @@ namespace TCPServer
         {
             var successfulRegistration = new XPacketSuccessfulRegistration()
             {
-                Id = _server._clients.Count
+                Id = _server.clients.Count
             };
 
             //TODO: логика добавления игрока в игру
 
             QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
-            if (_server._clients.Count > 1)
-                foreach (var client in _server._clients)
-                    QueuePacketSend(XPacketConverter
+            if (_server.clients.Count > 1)
+                foreach (var client in _server.clients)
+                    client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
         }
 
@@ -106,7 +106,7 @@ namespace TCPServer
         private void ProcessPause(XPacket packet)
         {
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            var opponent = _server._clients.FirstOrDefault(c => c.Id != Id);
+            var opponent = _server.clients.FirstOrDefault(c => c.Id != Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Pause, pause).ToPacket());
@@ -117,10 +117,17 @@ namespace TCPServer
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
 
-            var opponent = _server._clients.FirstOrDefault(c => c.Id != Id);
+            var opponent = _server.clients.FirstOrDefault(c => c.Id != Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
 
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.PauseEnded, pauseEnded).ToPacket());
+        }
+
+        private void EndGameForAllPlayers(int id)
+        {
+            foreach (var client in _server.clients)
+                client.QueuePacketSend(XPacketConverter
+                    .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = id }).ToPacket());
         }
 
         public void QueuePacketSend(byte[] packet)

@@ -15,8 +15,8 @@ namespace CollapseGameFormsApp
         {
             InitializeComponent();
             client = new XClient();
-            InitialiseButtons();
-            foreach(var but in buttons)
+            InitializeButtons();
+            foreach(var but in buttons!)
                 but.Visible = false;
         }
 
@@ -34,7 +34,7 @@ namespace CollapseGameFormsApp
                     .ToPacket());
         }
 
-        private void InitialiseButtons()
+        private void InitializeButtons()
         {
             buttons = new[] {
                 button2, button3, button4, button5, button6,
@@ -98,8 +98,8 @@ namespace CollapseGameFormsApp
         private void ProcessSuccessfulRegistration(XPacket packet)
         {
             var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
-            foreach (var but in buttons)
-                but.Visible = true;
+            foreach (var button in buttons)
+                button.Visible = true;
             //TODO: go to game
 
         }
