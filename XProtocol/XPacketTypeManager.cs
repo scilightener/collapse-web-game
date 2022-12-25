@@ -11,6 +11,13 @@ namespace XProtocol
         static XPacketTypeManager()
         {
             RegisterType(XPacketType.Handshake, 1, 0);
+            RegisterType(XPacketType.Move, 1, 1);
+            RegisterType(XPacketType.Pause, 1, 2);
+            RegisterType(XPacketType.PauseEnded, 1, 3);
+            RegisterType(XPacketType.SuccessfulRegistration, 2, 0);
+            RegisterType(XPacketType.StartGame, 2, 1);
+            RegisterType(XPacketType.MoveResult, 2, 2);
+            RegisterType(XPacketType.Winner, 2, 3);
         }
 
         public static void RegisterType(XPacketType type, byte btype, byte bsubtype)

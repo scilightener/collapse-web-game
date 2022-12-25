@@ -47,10 +47,18 @@
     <Compile Include="XPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XPacketField.cs" />
-    <Compile Include="XPacketHandshake.cs" />
+    <Compile Include="XPackets\XPacketHandshake.cs" />
+    <Compile Include="XPackets\XPacketMove.cs" />
+    <Compile Include="XPackets\XPacketMoveResult.cs" />
+    <Compile Include="XPackets\XPacketPause.cs" />
+    <Compile Include="XPackets\XPacketPauseEnded.cs" />
+    <Compile Include="XPackets\XPacketStartGame.cs" />
+    <Compile Include="XPackets\XPacketSuccessfulRegistration.cs" />
+    <Compile Include="XPackets\XPacketWinner.cs" />
     <Compile Include="XPacketType.cs" />
     <Compile Include="XPacketTypeManager.cs" />
     <Compile Include="XProtocolEncryptor.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
