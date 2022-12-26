@@ -73,6 +73,7 @@ public class Board
             UpdateCell(1, cell.X + 1, cell.Y, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y - 1, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y + 1, cell.Owner!);
+            _playersOwnedCells[cell.Owner!.Id]--;
             cell.ResetCountPoints();
         }
 

@@ -101,8 +101,8 @@ namespace TCPServer
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
             if (!result) Disconnect(); // TODO: disconnect player
-            /*if (_server.Gp.IsGameEnded)
-                EndGameForAllPlayers();*/
+            if (_server.Gp.IsGameEnded)
+                EndGameForAllPlayers();
         }
 
         //Done Send Pause to opponent
