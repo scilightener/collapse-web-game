@@ -7,7 +7,7 @@ public class GameProvider
 {
     private readonly Board _board;
     private readonly Player[] _players;
-    private int _movesCount = 1;
+    private int _movesCount = 0;
     public GameProvider(int rows, int columns, params Player[] players)
     {
         _board = new Board(rows, columns, players);
@@ -16,7 +16,7 @@ public class GameProvider
 
     internal bool MakeMove(int playerId, int x, int y)
     {
-        var currentPlayer = _movesCount % 2 == 1 ? _players[0] : _players[1];
+        var currentPlayer = _players[_movesCount % 2];
         if (currentPlayer.Id != playerId) return false;
         _movesCount++;
         return _board.MakeMove(currentPlayer, x, y);

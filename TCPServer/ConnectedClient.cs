@@ -100,6 +100,8 @@ namespace TCPServer
             };
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
+            foreach (var client in _server.Clients.Where(c => c.Player.Id != Player.Id))
+                client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, move).ToPacket());
             if (!result) Disconnect(); // TODO: disconnect player
             if (_server.Gp.IsGameEnded)
                 EndGameForAllPlayers();
