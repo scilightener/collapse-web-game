@@ -142,13 +142,23 @@ namespace CollapseGameFormsApp
         private void ProcessPause(XPacket packet)
         {
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            //TODO: Pause game
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = false;
+                button29.Visible = false;
+            });
         }
 
         private void ProcessPauseEnded(XPacket packet)
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
-            //TODO: Unpaused game
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = true;
+                button29.Visible = true;
+            });
         }
 
         private void ProcessWinner(XPacket packet)
