@@ -21,7 +21,6 @@ namespace CollapseGameFormsApp
             _client = new XClient();
             foreach(var but in _buttons!)
                 but.Visible = false;
-            Task.Run(UpdateGameBoard);
         }
 
         private static (int x, int y) GetButtonCoordinates(Control b) => ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
@@ -30,7 +29,7 @@ namespace CollapseGameFormsApp
         {
             while (true)
             {
-                Task.Run(() => RunInUI(() =>
+                RunInUI(() =>
                 {
                     foreach (var button in _buttons)
                     {
@@ -38,8 +37,8 @@ namespace CollapseGameFormsApp
                         button.Text = _gp.GetCountPointsByCoordinates(coords.x, coords.y).ToString();
                         button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
                     }
-                }));
-                Task.Delay(500);
+                });
+                Thread.Sleep(500);
             }
         }
 
@@ -69,7 +68,7 @@ namespace CollapseGameFormsApp
         private void OnClickGameField(int x, int y)
         {
             var move = _gp.MakeMove(_player.Id, x, y);
-            //if (!move) ; // TODO: handle this case
+            if (!move) return; // TODO: handle this case
             _client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
             {
                 X = x, Y = y
@@ -144,6 +143,7 @@ namespace CollapseGameFormsApp
             var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
             _players.Add(opponent);
             _gp = new GameProvider(5, 5, _player, opponent);
+            Task.Run(UpdateGameBoard);
         }
 
         private void ProcessMoveResult(XPacket packet)
