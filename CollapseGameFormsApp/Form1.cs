@@ -13,7 +13,7 @@ namespace CollapseGameFormsApp
         private GameProvider _gp;
         private Player _player;
         private List<Player> _players;
-        
+
         public Form1()
         {
             InitializeComponent();
@@ -21,6 +21,26 @@ namespace CollapseGameFormsApp
             _client = new XClient();
             foreach(var but in _buttons!)
                 but.Visible = false;
+            Task.Run(UpdateGameBoard);
+        }
+
+        private static (int x, int y) GetButtonCoordinates(Control b) => ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
+
+        private void UpdateGameBoard()
+        {
+            while (true)
+            {
+                Task.Run(() => RunInUI(() =>
+                {
+                    foreach (var button in _buttons)
+                    {
+                        var coords = GetButtonCoordinates(button);
+                        button.Text = _gp.GetCountPointsByCoordinates(coords.x, coords.y).ToString();
+                        button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
+                    }
+                }));
+                Task.Delay(500);
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

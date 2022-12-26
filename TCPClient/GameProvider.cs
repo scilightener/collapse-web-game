@@ -33,4 +33,8 @@ public class GameProvider
         4 => Color.Red,
         _ => Color.White,
     };
+
+    public Color GetColorByCoordinates(int x, int y) => _board[x, y].Owner.Color;
+
+    public int GetCountPointsByCoordinates(int x, int y) => _board[x, y].CountPoints;
 }

@@ -32,7 +32,7 @@ public class GameProvider
         0 => Color.Yellow,
         1 => Color.Green,
         2 => Color.Blue,
-        3 => Color.Brown,
+        3 => Color.Aqua,
         4 => Color.Red,
         _ => Color.White,
     };
