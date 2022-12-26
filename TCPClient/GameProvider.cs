@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using GameLogic;
 
-namespace TCPServer;
+namespace TCPClient;
 
 public class GameProvider
 {
@@ -14,7 +14,7 @@ public class GameProvider
         _players = players;
     }
 
-    internal bool MakeMove(int playerId, int x, int y)
+    public bool MakeMove(int playerId, int x, int y)
     {
         var currentPlayer = _movesCount % 2 == 1 ? _players[0] : _players[1];
         if (currentPlayer.Id != playerId) return false;
@@ -23,9 +23,6 @@ public class GameProvider
     }
 
     public bool IsGameEnded => _board.Status == GameStatus.Ended;
-
-    public int GetWinnerId() =>
-        IsGameEnded ? _players.First(p => _board.GetPlayerStatus(p) == PlayerStatus.Winner).Id : -1;
 
     public static Color GetColorForPlayer(int id) => id switch
     {

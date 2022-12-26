@@ -1,3 +1,4 @@
+using GameLogic;
 using TCPClient;
 using XProtocol.Serializer;
 using XProtocol.XPackets;
@@ -9,6 +10,9 @@ namespace CollapseGameFormsApp
     {
         private readonly XClient _client;
         private Button[] _buttons;
+        private GameProvider _gp;
+        private Player _player;
+        private List<Player> _players;
         
         public Form1()
         {
@@ -44,6 +48,8 @@ namespace CollapseGameFormsApp
 
         private void OnClickGameField(int x, int y)
         {
+            var move = _gp.MakeMove(_player.Id, x, y);
+            //if (!move) ; // TODO: handle this case
             _client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
             {
                 X = x, Y = y
@@ -76,6 +82,9 @@ namespace CollapseGameFormsApp
                 case XPacketType.MoveResult:
                     ProcessMoveResult(packet);
                     break;
+                case XPacketType.Move:
+                    ProcessMove(packet);
+                    break;
                 case XPacketType.Pause:
                     ProcessPause(packet);
                     break;
@@ -95,10 +104,9 @@ namespace CollapseGameFormsApp
         private void ProcessSuccessfulRegistration(XPacket packet)
         {
             var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
-            
-            
-            //TODO: go to game
-
+            var playerId = successfulRegistration.Id;
+            _player = new Player(playerId, $"Player{playerId}", GameProvider.GetColorForPlayer(playerId));
+            _players.Add(_player);
         }
 
         private void RunInUI(Action action) => BeginInvoke(action);
@@ -112,15 +120,23 @@ namespace CollapseGameFormsApp
                     button.Visible = true;
                 button29.Visible = true;
             });
-            // client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            var opponentId = 1 - _player.Id;
+            var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
+            _players.Add(opponent);
+            _gp = new GameProvider(5, 5, _player, opponent);
         }
 
         private void ProcessMoveResult(XPacket packet)
         {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+            var moveResult = XPacketConverter.Deserialize<XPacketMoveResult>(packet);
 
-
-            //client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            if (!moveResult.Successful) ; // TODO: handle this case
+        }
+        
+        private void ProcessMove(XPacket packet)
+        {
+            var move = XPacketConverter.Deserialize<XPacketMove>(packet);
+            _gp.MakeMove(_players.First(p => p.Id != _player.Id).Id, move.X, move.Y);
         }
 
         private void ProcessPause(XPacket packet)
@@ -137,9 +153,11 @@ namespace CollapseGameFormsApp
 
         private void ProcessWinner(XPacket packet)
         {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
-
-            //client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            var winner = XPacketConverter.Deserialize<XPacketWinner>(packet);
+            if (winner.IdWinner != _player.Id)
+                if (_gp.IsGameEnded) ; // TODO: looser
+                else ; // TODO: cheater
+            else ;// TODO: winner
         }
 
         private void button2_Hover(object sender, EventArgs e) { }
