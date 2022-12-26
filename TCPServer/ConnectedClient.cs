@@ -77,10 +77,10 @@ namespace TCPServer
             {
                 Id = Player.Id
             };
-            //TODO: логика добавления игрока в игру
 
             QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
+            
             if (_server.Clients.Count > 1)
                 foreach (var client in _server.Clients)
                     client.QueuePacketSend(XPacketConverter
