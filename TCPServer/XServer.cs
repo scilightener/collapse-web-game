@@ -73,7 +73,7 @@ namespace TCPServer
             var player = new Player(id, $"Player{id}", color);
 
             if (Clients.Count == 1)
-                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).ToArray());
+                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player}).ToArray());
             return player;
         }
     }
