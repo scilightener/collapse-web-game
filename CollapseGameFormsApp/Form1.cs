@@ -12,7 +12,7 @@ namespace CollapseGameFormsApp
         private Button[] _buttons;
         private GameProvider _gp;
         private Player _player;
-        private List<Player> _players;
+        private List<Player> _players = new();
         
         public Form1()
         {

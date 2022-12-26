@@ -101,13 +101,14 @@ namespace TCPServer
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
             if (!result) Disconnect(); // TODO: disconnect player
-            if (_server.Gp.IsGameEnded)
-                EndGameForAllPlayers();
+            /*if (_server.Gp.IsGameEnded)
+                EndGameForAllPlayers();*/
         }
 
         //Done Send Pause to opponent
         private void ProcessPause(XPacket packet)
         {
+            Console.WriteLine($"Received pause from {Player.Id}");
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
             var opponent = _server.Clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
@@ -119,6 +120,7 @@ namespace TCPServer
         private void ProcessPauseEnded(XPacket packet)
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
+            Console.WriteLine($"Received pause ended from {Player.Id}");
 
             var opponent = _server.Clients.FirstOrDefault(c => c.Player.Id != Player.Id);
             if (opponent == null) throw new NullReferenceException("Opponent not found");
