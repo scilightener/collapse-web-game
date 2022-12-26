@@ -153,7 +153,7 @@ namespace CollapseGameFormsApp
                         button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
                     }
                 });
-                Thread.Sleep(750);
+                Thread.Sleep(400);
             };
             _gp = new GameProvider(5, 5, updater, _player, opponent);
             //Task.Run(UpdateGameBoard);

@@ -8,7 +8,7 @@ public class Board
     public int Rows => _rows;
     public int Columns => _columns;
     public GameStatus Status { get; private set; } = Started;
-    public Action UpdateUI { get; set; }
+    public Action? UpdateUI { get; set; }
 
     private readonly int _rows;
     private readonly int _columns;
@@ -54,13 +54,18 @@ public class Board
         if (player.MovesCount == 0 && cell.Owner is null && UpdateCell(3, x, y, player))
         {
             player.MakeMove();
+            Update();
             return true;
         }
         
         if ((cell.Owner?.Id ?? -1) != player.Id)
             return false;
         UpdateCell(1, x, y, player);
-        while (!_isBoardOk) Update();
+        while (!_isBoardOk)
+        {
+            Update();
+            UpdateUI?.Invoke();
+        }
         _isBoardOk = false;
         return true;
     }
@@ -80,7 +85,6 @@ public class Board
 
         _isBoardOk = _changedCells.Count == 0;
         _changedCells.Clear();
-        UpdateUI();
     }
 
     private bool UpdateCell(int count, int x, int y, Player initiator)
