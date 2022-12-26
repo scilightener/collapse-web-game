@@ -142,8 +142,21 @@ namespace CollapseGameFormsApp
             var opponentId = 1 - _player.Id;
             var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
             _players.Add(opponent);
-            _gp = new GameProvider(5, 5, _player, opponent);
-            Task.Run(UpdateGameBoard);
+            var updater = () =>
+            {
+                RunInUI(() =>
+                {
+                    foreach (var button in _buttons)
+                    {
+                        var coords = GetButtonCoordinates(button);
+                        button.Text = _gp.GetCountPointsByCoordinates(coords.x, coords.y).ToString();
+                        button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
+                    }
+                });
+                Thread.Sleep(750);
+            };
+            _gp = new GameProvider(5, 5, updater, _player, opponent);
+            //Task.Run(UpdateGameBoard);
         }
 
         private void ProcessMoveResult(XPacket packet)
