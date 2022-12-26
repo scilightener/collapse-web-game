@@ -50,12 +50,12 @@ public class Board
             Status == Ended)
             return false;
         var cell = _cells[x, y];
-        if (player.MovesCount == 0)
+        if (player.MovesCount == 0 && cell.Owner is null && UpdateCell(3, x, y, player))
         {
             player.MakeMove();
-            return cell.Owner is null && UpdateCell(3, x, y, player);
+            return true;
         }
-
+        
         if ((cell.Owner?.Id ?? -1) != player.Id)
             return false;
         UpdateCell(1, x, y, player);

@@ -17,10 +17,14 @@ public class GameProvider
 
     public bool MakeMove(int playerId, int x, int y)
     {
-        var currentPlayer = _players[(_movesCount + 1) % 2];
+        var currentPlayer = _players[_movesCount % 2];
         if (currentPlayer.Id != playerId) return false;
-        _movesCount++;
-        return _board.MakeMove(currentPlayer, x, y);
+        if (_board.MakeMove(currentPlayer, x, y))
+        {
+            _movesCount++;
+            return true;
+        }
+        return false;
     }
 
     public bool IsGameEnded => _board.Status == GameStatus.Ended;

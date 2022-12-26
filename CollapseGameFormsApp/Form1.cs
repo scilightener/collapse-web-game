@@ -150,7 +150,7 @@ namespace CollapseGameFormsApp
         {
             var moveResult = XPacketConverter.Deserialize<XPacketMoveResult>(packet);
 
-            if (!moveResult.Successful) ; // TODO: handle this case
+            if (!moveResult.Successful); // TODO: handle this case
         }
         
         private void ProcessMove(XPacket packet)
