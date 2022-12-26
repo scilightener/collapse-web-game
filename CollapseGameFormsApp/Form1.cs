@@ -110,6 +110,7 @@ namespace CollapseGameFormsApp
             {
                 foreach (var button in _buttons)
                     button.Visible = true;
+                button29.Visible = true;
             });
             // client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
         }
@@ -191,5 +192,38 @@ namespace CollapseGameFormsApp
         private void button25_Click(object sender, EventArgs e) => OnClickGameField(4, 3);
 
         private void button26_Click(object sender, EventArgs e) => OnClickGameField(4, 4);
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = true;
+                button27.Visible = false;
+                button28.Visible = false;
+                button29.Visible = true;
+            });
+            _client.QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.PauseEnded, new XPacketPauseEnded()).ToPacket());
+        }
+
+        private void button29_Click(object sender, EventArgs e)
+        {
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = false;
+                button27.Visible = true;
+                button28.Visible = true;
+                button29.Visible = false;
+            });
+            _client.QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.Pause, new XPacketPause()).ToPacket());
+        }
+
+        private void button28_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -91,7 +91,8 @@ namespace TCPServer
         private void ProcessMove(XPacket packet)
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
-            var result = _server.Gp.MakeMove(Player.Id, move.X, move.Y);
+            var resultgp = _server.Gp.MakeMove(Player.Id, move.X, move.Y);
+            var result = true;
 
             var moveResult = new XPacketMoveResult
             {
