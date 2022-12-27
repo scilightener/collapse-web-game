@@ -62,10 +62,7 @@ public class Board
             return false;
         UpdateCell(1, x, y, player);
         while (!_isBoardOk)
-        {
             Update();
-            UpdateUI?.Invoke();
-        }
         _isBoardOk = false;
         return true;
     }
@@ -85,6 +82,7 @@ public class Board
 
         _isBoardOk = _changedCells.Count == 0;
         _changedCells.Clear();
+        UpdateUI?.Invoke();
     }
 
     private bool UpdateCell(int count, int x, int y, Player initiator)
