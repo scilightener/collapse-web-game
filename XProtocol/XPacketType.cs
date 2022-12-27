@@ -10,6 +10,7 @@
         MoveResult,
         Pause,
         PauseEnded,
-        Winner
+        Winner,
+        EndGame
     }
 }

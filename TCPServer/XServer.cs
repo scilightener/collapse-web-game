@@ -6,12 +6,13 @@ namespace TCPServer
 {
     internal class XServer
     {
-        private readonly Socket _socket;
         internal readonly List<ConnectedClient> Clients;
         internal GameProvider Gp;
+        internal int CurrentId = 0;
 
         private bool _listening;
         private bool _stopListening;
+        private readonly Socket _socket;
 
         public XServer()
         {
@@ -68,12 +69,12 @@ namespace TCPServer
 
         private Player CreateNewPlayer()
         {
-            var id = Clients.Count;
+            var id = CurrentId++;
             var color = GameProvider.GetColorForPlayer(id);
             var player = new Player(id, $"Player{id}", color);
 
-            if (Clients.Count == 1)
-                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player}).ToArray());
+            if (CurrentId == 2)
+                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player }).ToArray());
             return player;
         }
     }

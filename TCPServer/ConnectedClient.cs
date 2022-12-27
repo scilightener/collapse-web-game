@@ -64,6 +64,9 @@ namespace TCPServer
                 case XPacketType.PauseEnded:
                     ProcessPauseEnded(packet);
                     break;
+                case XPacketType.EndGame:
+                    ProcessEndGame(packet);
+                    break;
                 case XPacketType.Unknown:
                     break;
                 default:
@@ -71,7 +74,15 @@ namespace TCPServer
             }
         }
 
-        private void ProcessHandshake(XPacket packet)
+        private void ProcessEndGame(XPacket packet)
+        {
+            var endGame = XPacketConverter.Deserialize<XPacketEndGame>(packet);
+            var winner = _server.Clients.First(c => c.Player.Id != endGame.PlayerId);
+            winner.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = winner.Player.Id }).ToPacket());
+            _server.Clients.Remove(_server.Clients.First(c => c != winner));
+        }
+
+        private void ProcessHandshake(XPacket _)
         {
             var successfulRegistration = new XPacketSuccessfulRegistration
             {
@@ -91,23 +102,25 @@ namespace TCPServer
         private void ProcessMove(XPacket packet)
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
-            var resultgp = _server.Gp.MakeMove(Player.Id, move.X, move.Y);
-            var result = true;
+            var result = _server.Gp.MakeMove(Player.Id, move.X, move.Y);
 
             var moveResult = new XPacketMoveResult
             {
-                Successful = result,
+                Successful = result
             };
             Console.WriteLine($"Received Move from {Player.Id} with {move.X}, {move.Y}");
             QueuePacketSend(XPacketConverter.Serialize(XPacketType.MoveResult, moveResult).ToPacket());
             foreach (var client in _server.Clients.Where(c => c.Player.Id != Player.Id))
                 client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, move).ToPacket());
-            if (!result) Disconnect(); // TODO: disconnect player
+            if (!result)
+                foreach (var client in _server.Clients)
+                    client.QueuePacketSend(XPacketConverter
+                        .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = (_server.Clients.First(c => c.Player == Player)).Player.Id })
+                        .ToPacket());
             if (_server.Gp.IsGameEnded)
                 EndGameForAllPlayers();
         }
 
-        //Done Send Pause to opponent
         private void ProcessPause(XPacket packet)
         {
             Console.WriteLine($"Received pause from {Player.Id}");
@@ -118,7 +131,6 @@ namespace TCPServer
             opponent.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Pause, pause).ToPacket());
         }
 
-        //Done Send Pause Ended to opponent
         private void ProcessPauseEnded(XPacket packet)
         {
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
@@ -133,12 +145,9 @@ namespace TCPServer
         private void EndGameForAllPlayers()
         {
             foreach (var client in _server.Clients)
-            {
                 client.QueuePacketSend(XPacketConverter
                     .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = _server.Gp.GetWinnerId() })
                     .ToPacket());
-                client.Disconnect();
-            }
         }
 
         private void QueuePacketSend(byte[] packet)
@@ -173,6 +182,7 @@ namespace TCPServer
         public void Dispose()
         {
             Client.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

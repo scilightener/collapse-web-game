@@ -25,23 +25,6 @@ namespace CollapseGameFormsApp
 
         private static (int x, int y) GetButtonCoordinates(Control b) => ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
 
-        private void UpdateGameBoard()
-        {
-            while (true)
-            {
-                RunInUI(() =>
-                {
-                    foreach (var button in _buttons)
-                    {
-                        var coords = GetButtonCoordinates(button);
-                        button.Text = _gp.GetCountPointsByCoordinates(coords.x, coords.y).ToString();
-                        button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
-                    }
-                });
-                Thread.Sleep(500);
-            }
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             button1.Visible = false;
@@ -148,15 +131,19 @@ namespace CollapseGameFormsApp
                 {
                     foreach (var button in _buttons)
                     {
-                        var coords = GetButtonCoordinates(button);
-                        button.Text = _gp.GetCountPointsByCoordinates(coords.x, coords.y).ToString();
-                        button.BackColor = _gp.GetColorByCoordinates(coords.x, coords.y);
+                        var (x, y) = GetButtonCoordinates(button);
+                        button.Text = _gp.GetCountPointsByCoordinates(x, y).ToString();
+                        button.BackColor = _gp.GetColorByCoordinates(x, y);
                     }
                 });
-                Thread.Sleep(400);
+                Thread.Sleep(300);
             };
             _gp = new GameProvider(5, 5, updater, _player, opponent);
-            //Task.Run(UpdateGameBoard);
+            RunInUI(() => 
+            { 
+                foreach (var player in _players)
+                    listBox1.Items.Add(player.Name);
+            });
         }
 
         private void ProcessMoveResult(XPacket packet)
@@ -197,13 +184,38 @@ namespace CollapseGameFormsApp
         private void ProcessWinner(XPacket packet)
         {
             var winner = XPacketConverter.Deserialize<XPacketWinner>(packet);
+            listBox1.Items.Clear();
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = false;
+                button29.Visible = false;
+                label1.Visible = true;
+            });
             if (winner.IdWinner != _player.Id)
-                if (_gp.IsGameEnded) ; // TODO: looser
-                else ; // TODO: cheater
-            else ;// TODO: winner
+                if (_gp.IsGameEnded) RunInUI(() =>
+                {
+                    label1.Text = "You are looser! :(";
+                });
+                else RunInUI(() =>
+                {
+                    label1.Text = "You are cheater! Blame on you!";
+                });
+            else RunInUI(() =>
+            {
+                label1.Text = "Congratulations! You are winner!";
+            });
         }
 
-        private void button2_Hover(object sender, EventArgs e) { }
+        private void EndGame()
+        {
+            _client.QueuePacketSend(
+                XPacketConverter.Serialize(
+                    XPacketType.EndGame,
+                    new XPacketEndGame { PlayerId = _player.Id })
+                    .ToPacket());
+        }
+
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
 
         private void button3_Click(object sender, EventArgs e) => OnClickGameField(0, 1);
@@ -284,7 +296,8 @@ namespace CollapseGameFormsApp
 
         private void button28_Click(object sender, EventArgs e)
         {
-
+            button27_Click(sender, e);
+            Dispose();
         }
     }
 }

@@ -8,7 +8,7 @@ public class Board
     public int Rows => _rows;
     public int Columns => _columns;
     public GameStatus Status { get; private set; } = Started;
-    public Action? UpdateUI { get; set; }
+    public Action UpdateUI { get; set; } = () => { };
 
     private readonly int _rows;
     private readonly int _columns;
@@ -82,7 +82,7 @@ public class Board
 
         _isBoardOk = _changedCells.Count == 0;
         _changedCells.Clear();
-        UpdateUI?.Invoke();
+        UpdateUI.Invoke();
     }
 
     private bool UpdateCell(int count, int x, int y, Player initiator)
