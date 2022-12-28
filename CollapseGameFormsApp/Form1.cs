@@ -9,7 +9,6 @@ namespace CollapseGameFormsApp
     public partial class Form1 : Form
     {
         private readonly XClient _client;
-        private Button[] _buttons;
         private GameProvider _gp;
         private Player _player;
         private List<Player> _players = new();
@@ -17,17 +16,14 @@ namespace CollapseGameFormsApp
         public Form1()
         {
             InitializeComponent();
-            InitializeButtons();
             _client = new XClient();
-            foreach(var but in _buttons!)
-                but.Visible = false;
         }
 
         private static (int x, int y) GetButtonCoordinates(Control b) => ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
 
-        private void button1_Click(object sender, EventArgs e)
+        private void startButton_Click(object sender, EventArgs e)
         {
-            button1.Visible = false;
+            startButton.Visible = false;
             _client.Connect("127.0.0.1", 4910);
             _client.OnPacketReceive = OnPacketReceive;
             _client.QueuePacketSend(
@@ -35,17 +31,6 @@ namespace CollapseGameFormsApp
                     XPacketType.Handshake,
                     new XPacketHandshake())
                     .ToPacket());
-        }
-
-        private void InitializeButtons()
-        {
-            _buttons = new[] {
-                button2, button3, button4, button5, button6,
-                button7, button8, button9, button10, button11,
-                button12, button13, button14, button15, button16,
-                button17, button18, button19, button20, button21,
-                button22, button23, button24, button25, button26
-            };
         }
 
         private void OnClickGameField(int x, int y)
@@ -58,9 +43,9 @@ namespace CollapseGameFormsApp
             }).ToPacket());
             RunInUI(() =>
             {
-                ((ListBoxItem)listBox1.Items[0]).SetMove(false);
-                ((ListBoxItem)listBox1.Items[1]).SetMove(true);
-                listBox1.Refresh();
+                ((ListBoxItem)players.Items[0]).SetMove(false);
+                ((ListBoxItem)players.Items[1]).SetMove(true);
+                players.Refresh();
             });
         }
 
@@ -114,6 +99,7 @@ namespace CollapseGameFormsApp
             var playerId = successfulRegistration.Id;
             _player = new Player(playerId, $"Player{playerId}", GameProvider.GetColorForPlayer(playerId));
             _players.Add(_player);
+            RunInUI(() => Text = _player.Name);
         }
 
         private void RunInUI(Action action) => BeginInvoke(action);
@@ -123,9 +109,8 @@ namespace CollapseGameFormsApp
             //this.BackgroundImage = 
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = true;
-                button29.Visible = true;
+                gameField.Visible = true;
+                pause.Visible = true;
             });
             var opponentId = 1 - _player.Id;
             var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
@@ -134,9 +119,10 @@ namespace CollapseGameFormsApp
             {
                 RunInUI(() =>
                 {
-                    foreach (var button in _buttons)
+                    foreach (var control in gameField.Controls)
                     {
-                        var (x, y) = GetButtonCoordinates(button);
+                        if (control is not Button button) continue;
+                        (int x, int y) = GetButtonCoordinates(button);
                         button.Text = _gp.GetCountPointsByCoordinates(x, y).ToString();
                         button.BackColor = _gp.GetColorByCoordinates(x, y);
                     }
@@ -147,11 +133,11 @@ namespace CollapseGameFormsApp
             RunInUI(() => 
             { 
                 foreach (var player in _players)
-                    listBox1.Items.Add(new ListBoxItem(player.Color, player.Name, player.Id));
+                    players.Items.Add(new ListBoxItem(player.Color, player.Name, player.Id));
                 if (_player.Id == _gp.WhoMoves())
-                    ((ListBoxItem)listBox1.Items[0]).SetMove(true);
-                else ((ListBoxItem)listBox1.Items[1]).SetMove(true);
-                listBox1.Refresh();
+                    ((ListBoxItem)players.Items[0]).SetMove(true);
+                else ((ListBoxItem)players.Items[1]).SetMove(true);
+                players.Refresh();
             });
         }
 
@@ -162,11 +148,10 @@ namespace CollapseGameFormsApp
             if (moveResult.Successful) return;
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = false;
-                button29.Visible = false;
-                label1.Visible = true;
-                label1.Text = "You are cheater! Blame on you!";
+                gameField.Visible = false;
+                pause.Visible = false;
+                gameResultDialog.Visible = true;
+                gameResultMessage.Text = "You are cheater! Blame on you!";
             });
             EndGame();
         }
@@ -177,9 +162,9 @@ namespace CollapseGameFormsApp
             _gp.MakeMove(_players.First(p => p.Id != _player.Id).Id, move.X, move.Y);
             RunInUI(() =>
             {
-                ((ListBoxItem)listBox1.Items[0]).SetMove(true);
-                ((ListBoxItem)listBox1.Items[1]).SetMove(false);
-                listBox1.Refresh();
+                ((ListBoxItem)players.Items[0]).SetMove(true);
+                ((ListBoxItem)players.Items[1]).SetMove(false);
+                players.Refresh();
             });
         }
 
@@ -188,9 +173,8 @@ namespace CollapseGameFormsApp
             var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = false;
-                button29.Visible = false;
+                gameField.Enabled = false;
+                this.pause.Visible = false;
             });
         }
 
@@ -199,35 +183,24 @@ namespace CollapseGameFormsApp
             var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = true;
-                button29.Visible = true;
+                gameField.Enabled = true;
+                pause.Visible = true;
             });
         }
 
         private void ProcessWinner(XPacket packet)
         {
             var winner = XPacketConverter.Deserialize<XPacketWinner>(packet);
-            listBox1.Items.Clear();
+            players.Items.Clear();
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = false;
-                button29.Visible = false;
-                label1.Visible = true;
-            });
-            if (winner.IdWinner != _player.Id)
-                if (_gp.IsGameEnded) RunInUI(() =>
-                {
-                    label1.Text = "You are looser! :(";
-                });
-                else RunInUI(() =>
-                {
-                    label1.Text = "You are cheater! Blame on you!";
-                });
-            else RunInUI(() =>
-            {
-                label1.Text = "Congratulations! You are winner!";
+                gameField.Visible = false;
+                pause.Visible = false;
+                gameResultDialog.Visible = true;
+                if (winner.IdWinner != _player.Id)
+                    if (_gp.IsGameEnded) gameResultMessage.Text = "You are looser! :(";
+                    else gameResultMessage.Text = "You are cheater! Blame on you!";
+                else gameResultMessage.Text = "Congratulations! You are winner!";
             });
         }
 
@@ -241,6 +214,7 @@ namespace CollapseGameFormsApp
                         .ToPacket());
         }
 
+        #region GameField buttons click events
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
 
         private void button3_Click(object sender, EventArgs e) => OnClickGameField(0, 1);
@@ -290,51 +264,44 @@ namespace CollapseGameFormsApp
         private void button25_Click(object sender, EventArgs e) => OnClickGameField(4, 3);
 
         private void button26_Click(object sender, EventArgs e) => OnClickGameField(4, 4);
+        #endregion
 
-        private void button27_Click(object sender, EventArgs e)
+        private void continueGame_Click(object sender, EventArgs e)
         {
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = true;
-                button27.Visible = false;
-                button28.Visible = false;
-                button29.Visible = true;
+                gameField.Enabled = true;
+                pause.Visible = true;
+                menu.Visible = false;
                 
             });
             _client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.PauseEnded, new XPacketPauseEnded()).ToPacket());
         }
 
-        private void button29_Click(object sender, EventArgs e)
+        private void pause_Click(object sender, EventArgs e)
         {
             RunInUI(() =>
             {
-                foreach (var button in _buttons)
-                    button.Visible = false;
-                button27.Visible = true;
-                button28.Visible = true;
-                button29.Visible = false;
+                gameField.Enabled = false;
+                menu.Visible = true;
+                pause.Visible = false;
             });
             _client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.Pause, new XPacketPause()).ToPacket());
         }
 
-        private void button28_Click(object sender, EventArgs e)
-        {
-            button27_Click(sender, e);
-            Dispose();
-        }
+        private void quitGame_Click(object sender, EventArgs e) => Dispose();
 
-        private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
+        private void players_DrawItem(object sender, DrawItemEventArgs e)
         {
-            if (e.Index < 0 || listBox1.Items.Count == 0) return;
-            if (listBox1.Items[e.Index] is not ListBoxItem item) return;
+            if (e.Index < 0 || players.Items.Count == 0) return;
+            if (players.Items[e.Index] is not ListBoxItem item) return;
             e.DrawBackground();
             e.DrawFocusRectangle();
             e.Graphics.DrawString(
                 item.Message,
-                listBox1.Font,
+                players.Font,
                 new SolidBrush(item.ItemColor),
                 e.Bounds);
         }

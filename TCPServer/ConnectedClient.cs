@@ -26,10 +26,9 @@ namespace TCPServer
 
         private async void ProcessIncomingPacketsAsync()
         {
-            while (true) // Слушаем пакеты, пока клиент не отключится.
+            while (Client.Connected) // Слушаем пакеты, пока клиент не отключится.
             {
                 var buff = new byte[256]; // Максимальный размер пакета - 256 байт.
-                if (!Client.Connected) return;
                 try { await Client.ReceiveAsync(buff); }
                 catch { return; }
 
@@ -167,7 +166,7 @@ namespace TCPServer
 
         private async void SendPacketsAsync()
         {
-            while (true)
+            while (Client.Connected)
             {
                 if (_packetSendingQueue.Count == 0)
                 {
@@ -176,7 +175,6 @@ namespace TCPServer
                 }
 
                 var packet = _packetSendingQueue.Dequeue();
-                if (!Client.Connected) return;
                 try { await Client.SendAsync(packet); }
                 catch { return; }
 

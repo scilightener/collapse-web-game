@@ -41,10 +41,11 @@ namespace TCPClient
 
         private async void ReceivePacketsAsync()
         {
-            while (true)
+            while (_socket.Connected)
             {
                 var buff = new byte[256];
-                await _socket.ReceiveAsync(buff);
+                try { await _socket.ReceiveAsync(buff); }
+                catch { return; };
 
                 buff = buff.TakeWhile((b, i) =>
                 {
@@ -58,7 +59,7 @@ namespace TCPClient
 
         private async void SendPacketsAsync()
         {
-            while (true)
+            while (_socket.Connected)
             {
                 if (_packetSendingQueue.Count == 0)
                 {
