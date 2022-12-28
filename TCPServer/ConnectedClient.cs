@@ -20,8 +20,8 @@ namespace TCPServer
             _server = server;
             Player = player;
 
-            Task.Run(() => { while (Client.Connected) ProcessIncomingPacketsAsync(); });
-            Task.Run(() => { while (Client.Connected) SendPacketsAsync(); });
+            Task.Run(ProcessIncomingPacketsAsync);
+            Task.Run(SendPacketsAsync);
         }
 
         private async void ProcessIncomingPacketsAsync()

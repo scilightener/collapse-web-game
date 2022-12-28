@@ -6,6 +6,7 @@ namespace TCPClient
     public class XClient : IDisposable
     {
         public Action<byte[]> OnPacketReceive { get; set; }
+        public bool Connected => _socket?.Connected ?? false;
 
         private readonly Queue<byte[]> _packetSendingQueue = new Queue<byte[]>();
 

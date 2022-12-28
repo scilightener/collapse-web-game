@@ -233,11 +233,12 @@ namespace CollapseGameFormsApp
 
         private void EndGame()
         {
-            _client.QueuePacketSend(
-                XPacketConverter.Serialize(
-                    XPacketType.EndGame,
-                    new XPacketEndGame { PlayerId = _player.Id })
-                    .ToPacket());
+            if (_client.Connected)
+                _client.QueuePacketSend(
+                    XPacketConverter.Serialize(
+                        XPacketType.EndGame,
+                        new XPacketEndGame { PlayerId = _player.Id })
+                        .ToPacket());
         }
 
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
@@ -299,6 +300,7 @@ namespace CollapseGameFormsApp
                 button27.Visible = false;
                 button28.Visible = false;
                 button29.Visible = true;
+                
             });
             _client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.PauseEnded, new XPacketPauseEnded()).ToPacket());
@@ -335,6 +337,18 @@ namespace CollapseGameFormsApp
                 listBox1.Font,
                 new SolidBrush(item.ItemColor),
                 e.Bounds);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            AnimateWindow(Handle, 500,
+                AnimateWindowFlags.AW_BLEND |
+                AnimateWindowFlags.AW_VER_POSITIVE);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            AnimateWindow(Handle, 500, AnimateWindowFlags.AW_BLEND | AnimateWindowFlags.AW_HIDE);
         }
     }
 }
