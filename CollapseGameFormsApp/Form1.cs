@@ -60,6 +60,7 @@ namespace CollapseGameFormsApp
             {
                 ((ListBoxItem)listBox1.Items[0]).SetMove(false);
                 ((ListBoxItem)listBox1.Items[1]).SetMove(true);
+                listBox1.Refresh();
             });
         }
 
@@ -150,6 +151,7 @@ namespace CollapseGameFormsApp
                 if (_player.Id == _gp.WhoMoves())
                     ((ListBoxItem)listBox1.Items[0]).SetMove(true);
                 else ((ListBoxItem)listBox1.Items[1]).SetMove(true);
+                listBox1.Refresh();
             });
         }
 
@@ -177,6 +179,7 @@ namespace CollapseGameFormsApp
             {
                 ((ListBoxItem)listBox1.Items[0]).SetMove(true);
                 ((ListBoxItem)listBox1.Items[1]).SetMove(false);
+                listBox1.Refresh();
             });
         }
 
