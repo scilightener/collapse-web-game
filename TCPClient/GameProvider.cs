@@ -32,7 +32,7 @@ public class GameProvider
 
     public static Color GetColorForPlayer(int id) => id switch
     {
-        0 => Color.Aqua,
+        0 => Color.DarkCyan,
         1 => Color.Green,
         2 => Color.Brown,
         3 => Color.Red,
