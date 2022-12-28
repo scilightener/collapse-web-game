@@ -20,16 +20,18 @@ namespace TCPServer
             _server = server;
             Player = player;
 
-            Task.Run(ProcessIncomingPackets);
-            Task.Run(SendPackets);
+            Task.Run(() => { while (Client.Connected) ProcessIncomingPacketsAsync(); });
+            Task.Run(() => { while (Client.Connected) SendPacketsAsync(); });
         }
 
-        private void ProcessIncomingPackets()
+        private async void ProcessIncomingPacketsAsync()
         {
             while (true) // Слушаем пакеты, пока клиент не отключится.
             {
                 var buff = new byte[256]; // Максимальный размер пакета - 256 байт.
-                Client.Receive(buff);
+                if (!Client.Connected) return;
+                try { await Client.ReceiveAsync(buff); }
+                catch { return; }
 
                 buff = buff.TakeWhile((b, i) =>
                 {
@@ -77,11 +79,10 @@ namespace TCPServer
         private void ProcessEndGame(XPacket packet)
         {
             var endGame = XPacketConverter.Deserialize<XPacketEndGame>(packet);
+            if (_server.Clients.Count < 2) return;
             var winner = _server.Clients.First(c => c.Player.Id != endGame.PlayerId);
             winner.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = winner.Player.Id }).ToPacket());
             _server.Clients.Remove(_server.Clients.First(c => c != winner));
-            Thread.Sleep(1000);
-            _server.Dispose();
             Dispose();
         }
 
@@ -151,8 +152,6 @@ namespace TCPServer
                 client.QueuePacketSend(XPacketConverter
                     .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = _server.Gp.GetWinnerId() })
                     .ToPacket());
-            Thread.Sleep(2000);
-            _server.Dispose();
             Dispose();
         }
 
@@ -166,27 +165,30 @@ namespace TCPServer
             _packetSendingQueue.Enqueue(packet);
         }
 
-        private void SendPackets()
+        private async void SendPacketsAsync()
         {
             while (true)
             {
                 if (_packetSendingQueue.Count == 0)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                     continue;
                 }
 
                 var packet = _packetSendingQueue.Dequeue();
-                Client.Send(packet);
+                if (!Client.Connected) return;
+                try { await Client.SendAsync(packet); }
+                catch { return; }
 
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
         }
 
-        private void Disconnect() => Dispose();
-
         public void Dispose()
         {
+            Thread.Sleep(2000);
+            _server.Clients.Remove(this);
+            Client.Disconnect(false);
             Client.Dispose();
             GC.SuppressFinalize(this);
         }

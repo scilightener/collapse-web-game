@@ -24,8 +24,8 @@ namespace TCPClient
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _socket.Connect(_serverEndPoint);
 
-            Task.Run(ReceivePackets);
-            Task.Run(SendPackets);
+            Task.Run(ReceivePacketsAsync);
+            Task.Run(SendPacketsAsync);
         }
 
         public void QueuePacketSend(byte[] packet)
@@ -38,12 +38,12 @@ namespace TCPClient
             _packetSendingQueue.Enqueue(packet);
         }
 
-        private void ReceivePackets()
+        private async void ReceivePacketsAsync()
         {
             while (true)
             {
                 var buff = new byte[256];
-                _socket.Receive(buff);
+                await _socket.ReceiveAsync(buff);
 
                 buff = buff.TakeWhile((b, i) =>
                 {
@@ -55,20 +55,20 @@ namespace TCPClient
             }
         }
 
-        private async void SendPackets()
+        private async void SendPacketsAsync()
         {
             while (true)
             {
                 if (_packetSendingQueue.Count == 0)
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                     continue;
                 }
 
                 var packet = _packetSendingQueue.Dequeue();
                 await _socket.SendAsync(packet);
 
-                Thread.Sleep(100);
+                Thread.Sleep(50);
             }
         }
         
