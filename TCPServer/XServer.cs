@@ -7,8 +7,8 @@ namespace TCPServer
     internal class XServer : IDisposable
     {
         internal readonly List<ConnectedClient> Clients;
-        internal GameProvider Gp;
-        internal int CurrentId = 0;
+        internal GameProvider Gp = null!;
+        private int _currentId;
 
         private bool _listening;
         private bool _stopListening;
@@ -69,11 +69,11 @@ namespace TCPServer
 
         private Player CreateNewPlayer()
         {
-            var id = CurrentId++;
+            var id = _currentId++;
             var color = GameProvider.GetColorForPlayer(id);
             var player = new Player(id, $"Player{id}", color);
 
-            if (CurrentId == 2)
+            if (_currentId == 2)
                 Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player }).ToArray());
             return player;
         }

@@ -8,12 +8,12 @@ public class GameProvider
     private readonly Board _board;
     private readonly Player[] _players;
     private int _movesCount;
-    public GameProvider(int rows, int columns, Action updateUI, params Player[] players)
+    public GameProvider(int rows, int columns, Action updateUi, params Player[] players)
     {
         _board = new Board(rows, columns, players);
         _players = players;
         _movesCount = _players[0].Id;
-        _board.UpdateUI = updateUI;
+        _board.UpdateUi = updateUi;
     }
 
     public bool MakeMove(int playerId, int x, int y)

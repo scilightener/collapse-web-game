@@ -6,12 +6,12 @@ using XProtocol;
 
 namespace CollapseGameFormsApp
 {
-    public partial class Form1 : Form
+    public partial class Form1
     {
         private readonly XClient _client;
-        private GameProvider _gp;
-        private Player _player;
-        private List<Player> _players = new();
+        private GameProvider _gp = null!;
+        private Player _player = null!;
+        private readonly List<Player> _players = new();
         
         public Form1()
         {
@@ -41,7 +41,7 @@ namespace CollapseGameFormsApp
             {
                 X = x, Y = y
             }).ToPacket());
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 ((ListBoxItem)players.Items[0]).SetMove(false);
                 ((ListBoxItem)players.Items[1]).SetMove(true);
@@ -52,11 +52,7 @@ namespace CollapseGameFormsApp
         private void OnPacketReceive(byte[] packet)
         {
             var parsed = XPacket.Parse(packet);
-            
-            if (parsed != null)
-            {
-                ProcessIncomingPacket(parsed);
-            }
+            if (parsed != null) ProcessIncomingPacket(parsed);
         }
 
         private void ProcessIncomingPacket(XPacket packet)
@@ -69,7 +65,7 @@ namespace CollapseGameFormsApp
                     ProcessSuccessfulRegistration(packet);
                     break;
                 case XPacketType.StartGame:
-                    ProcessStartGame(packet);
+                    ProcessStartGame();
                     break;
                 case XPacketType.MoveResult:
                     ProcessMoveResult(packet);
@@ -78,10 +74,10 @@ namespace CollapseGameFormsApp
                     ProcessMove(packet);
                     break;
                 case XPacketType.Pause:
-                    ProcessPause(packet);
+                    ProcessPause();
                     break;
                 case XPacketType.PauseEnded:
-                    ProcessPauseEnded(packet);
+                    ProcessPauseEnded();
                     break;
                 case XPacketType.Winner:
                     ProcessWinner(packet);
@@ -99,15 +95,15 @@ namespace CollapseGameFormsApp
             var playerId = successfulRegistration.Id;
             _player = new Player(playerId, $"Player{playerId}", GameProvider.GetColorForPlayer(playerId));
             _players.Add(_player);
-            RunInUI(() => Text = _player.Name);
+            RunInUi(() => Text = _player.Name);
         }
 
-        private void RunInUI(Action action) => BeginInvoke(action);
+        private void RunInUi(Action action) => BeginInvoke(action);
 
-        private void ProcessStartGame(XPacket packet)
+        private void ProcessStartGame()
         {
             //this.BackgroundImage = 
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 gameField.Visible = true;
                 pause.Visible = true;
@@ -117,7 +113,7 @@ namespace CollapseGameFormsApp
             _players.Add(opponent);
             var updater = () =>
             {
-                RunInUI(() =>
+                RunInUi(() =>
                 {
                     foreach (var control in gameField.Controls)
                     {
@@ -130,7 +126,7 @@ namespace CollapseGameFormsApp
                 Thread.Sleep(300);
             };
             _gp = new GameProvider(5, 5, updater, _player, opponent);
-            RunInUI(() => 
+            RunInUi(() => 
             { 
                 foreach (var player in _players)
                     players.Items.Add(new ListBoxItem(player.Color, player.Name, player.Id));
@@ -146,7 +142,7 @@ namespace CollapseGameFormsApp
             var moveResult = XPacketConverter.Deserialize<XPacketMoveResult>(packet);
 
             if (moveResult.Successful) return;
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 gameField.Visible = false;
                 pause.Visible = false;
@@ -160,7 +156,7 @@ namespace CollapseGameFormsApp
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
             _gp.MakeMove(_players.First(p => p.Id != _player.Id).Id, move.X, move.Y);
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 ((ListBoxItem)players.Items[0]).SetMove(true);
                 ((ListBoxItem)players.Items[1]).SetMove(false);
@@ -168,38 +164,31 @@ namespace CollapseGameFormsApp
             });
         }
 
-        private void ProcessPause(XPacket packet)
-        {
-            var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            RunInUI(() =>
+        private void ProcessPause() =>
+            RunInUi(() =>
             {
                 gameField.Enabled = false;
-                this.pause.Visible = false;
+                pause.Visible = false;
             });
-        }
 
-        private void ProcessPauseEnded(XPacket packet)
-        {
-            var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
-            RunInUI(() =>
+        private void ProcessPauseEnded() =>
+            RunInUi(() =>
             {
                 gameField.Enabled = true;
                 pause.Visible = true;
             });
-        }
 
         private void ProcessWinner(XPacket packet)
         {
             var winner = XPacketConverter.Deserialize<XPacketWinner>(packet);
             players.Items.Clear();
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 gameField.Visible = false;
                 pause.Visible = false;
                 gameResultDialog.Visible = true;
                 if (winner.IdWinner != _player.Id)
-                    if (_gp.IsGameEnded) gameResultMessage.Text = "You are looser! :(";
-                    else gameResultMessage.Text = "You are cheater! Blame on you!";
+                    gameResultMessage.Text = _gp.IsGameEnded ? "You are looser! :(" : "You are cheater! Blame on you!";
                 else gameResultMessage.Text = "Congratulations! You are winner!";
             });
         }
@@ -268,7 +257,7 @@ namespace CollapseGameFormsApp
 
         private void continueGame_Click(object sender, EventArgs e)
         {
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 gameField.Enabled = true;
                 pause.Visible = true;
@@ -281,7 +270,7 @@ namespace CollapseGameFormsApp
 
         private void pause_Click(object sender, EventArgs e)
         {
-            RunInUI(() =>
+            RunInUi(() =>
             {
                 gameField.Enabled = false;
                 menu.Visible = true;

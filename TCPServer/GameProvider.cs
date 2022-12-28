@@ -7,7 +7,7 @@ public class GameProvider
 {
     private readonly Board _board;
     private readonly Player[] _players;
-    private int _movesCount = 0;
+    private int _movesCount;
     public GameProvider(int rows, int columns, params Player[] players)
     {
         _board = new Board(rows, columns, players);

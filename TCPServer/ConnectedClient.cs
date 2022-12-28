@@ -54,7 +54,7 @@ namespace TCPServer
             switch (type)
             {
                 case XPacketType.Handshake:
-                    ProcessHandshake(packet);
+                    ProcessHandshake();
                     break;
                 case XPacketType.Move:
                     ProcessMove(packet);
@@ -80,12 +80,13 @@ namespace TCPServer
             var endGame = XPacketConverter.Deserialize<XPacketEndGame>(packet);
             if (_server.Clients.Count < 2) return;
             var winner = _server.Clients.First(c => c.Player.Id != endGame.PlayerId);
-            winner.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = winner.Player.Id }).ToPacket());
+            winner.QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = winner.Player.Id }).ToPacket());
             _server.Clients.Remove(_server.Clients.First(c => c != winner));
             Dispose();
         }
 
-        private void ProcessHandshake(XPacket _)
+        private void ProcessHandshake()
         {
             var successfulRegistration = new XPacketSuccessfulRegistration
             {
