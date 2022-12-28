@@ -80,6 +80,9 @@ namespace TCPServer
             var winner = _server.Clients.First(c => c.Player.Id != endGame.PlayerId);
             winner.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = winner.Player.Id }).ToPacket());
             _server.Clients.Remove(_server.Clients.First(c => c != winner));
+            Thread.Sleep(1000);
+            _server.Dispose();
+            Dispose();
         }
 
         private void ProcessHandshake(XPacket _)
@@ -148,6 +151,9 @@ namespace TCPServer
                 client.QueuePacketSend(XPacketConverter
                     .Serialize(XPacketType.Winner, new XPacketWinner { IdWinner = _server.Gp.GetWinnerId() })
                     .ToPacket());
+            Thread.Sleep(2000);
+            _server.Dispose();
+            Dispose();
         }
 
         private void QueuePacketSend(byte[] packet)

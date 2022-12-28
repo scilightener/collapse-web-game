@@ -32,15 +32,16 @@ public class GameProvider
 
     public static Color GetColorForPlayer(int id) => id switch
     {
-        0 => Color.Yellow,
+        0 => Color.Aqua,
         1 => Color.Green,
-        2 => Color.Blue,
-        3 => Color.Brown,
-        4 => Color.Red,
+        2 => Color.Brown,
+        3 => Color.Red,
         _ => Color.White,
     };
 
     public Color GetColorByCoordinates(int x, int y) => _board[x, y].Owner?.Color ?? default;
 
     public int GetCountPointsByCoordinates(int x, int y) => _board[x, y].CountPoints;
+
+    public int WhoMoves() => _players[_movesCount % 2].Id;
 }

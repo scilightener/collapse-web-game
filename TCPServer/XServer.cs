@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace TCPServer
 {
-    internal class XServer
+    internal class XServer : IDisposable
     {
         internal readonly List<ConnectedClient> Clients;
         internal GameProvider Gp;
@@ -76,6 +76,13 @@ namespace TCPServer
             if (CurrentId == 2)
                 Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player }).ToArray());
             return player;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            _socket.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

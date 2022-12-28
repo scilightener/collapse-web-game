@@ -51,13 +51,17 @@ namespace CollapseGameFormsApp
         private void OnClickGameField(int x, int y)
         {
             var move = _gp.MakeMove(_player.Id, x, y);
-            if (!move) return; // TODO: handle this case
+            if (!move) return;
             _client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
             {
                 X = x, Y = y
             }).ToPacket());
+            RunInUI(() =>
+            {
+                ((ListBoxItem)listBox1.Items[0]).SetMove(false);
+                ((ListBoxItem)listBox1.Items[1]).SetMove(true);
+            });
         }
-
 
         private void OnPacketReceive(byte[] packet)
         {
@@ -142,7 +146,10 @@ namespace CollapseGameFormsApp
             RunInUI(() => 
             { 
                 foreach (var player in _players)
-                    listBox1.Items.Add(player.Name);
+                    listBox1.Items.Add(new ListBoxItem(player.Color, player.Name, player.Id));
+                if (_player.Id == _gp.WhoMoves())
+                    ((ListBoxItem)listBox1.Items[0]).SetMove(true);
+                else ((ListBoxItem)listBox1.Items[1]).SetMove(true);
             });
         }
 
@@ -150,13 +157,27 @@ namespace CollapseGameFormsApp
         {
             var moveResult = XPacketConverter.Deserialize<XPacketMoveResult>(packet);
 
-            if (!moveResult.Successful); // TODO: handle this case
+            if (moveResult.Successful) return;
+            RunInUI(() =>
+            {
+                foreach (var button in _buttons)
+                    button.Visible = false;
+                button29.Visible = false;
+                label1.Visible = true;
+                label1.Text = "You are cheater! Blame on you!";
+            });
+            EndGame();
         }
         
         private void ProcessMove(XPacket packet)
         {
             var move = XPacketConverter.Deserialize<XPacketMove>(packet);
             _gp.MakeMove(_players.First(p => p.Id != _player.Id).Id, move.X, move.Y);
+            RunInUI(() =>
+            {
+                ((ListBoxItem)listBox1.Items[0]).SetMove(true);
+                ((ListBoxItem)listBox1.Items[1]).SetMove(false);
+            });
         }
 
         private void ProcessPause(XPacket packet)
@@ -298,6 +319,19 @@ namespace CollapseGameFormsApp
         {
             button27_Click(sender, e);
             Dispose();
+        }
+
+        private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0 || listBox1.Items.Count == 0) return;
+            if (listBox1.Items[e.Index] is not ListBoxItem item) return;
+            e.DrawBackground();
+            e.DrawFocusRectangle();
+            e.Graphics.DrawString(
+                item.Message,
+                listBox1.Font,
+                new SolidBrush(item.ItemColor),
+                e.Bounds);
         }
     }
 }
