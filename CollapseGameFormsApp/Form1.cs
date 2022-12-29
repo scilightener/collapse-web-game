@@ -3,6 +3,7 @@ using TCPClient;
 using XProtocol.Serializer;
 using XProtocol.XPackets;
 using XProtocol;
+using System.Resources;
 
 namespace CollapseGameFormsApp
 {
@@ -19,7 +20,8 @@ namespace CollapseGameFormsApp
             _client = new XClient();
         }
 
-        private static (int x, int y) GetButtonCoordinates(Control b) => ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
+        private static (int x, int y) GetButtonCoordinates(Control b) =>
+            ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
 
         private void startButton_Click(object sender, EventArgs e)
         {
@@ -102,11 +104,12 @@ namespace CollapseGameFormsApp
 
         private void ProcessStartGame()
         {
-            //this.BackgroundImage = 
             RunInUi(() =>
             {
                 gameField.Visible = true;
                 pause.Visible = true;
+                button2.Size = new Size(90, 90);
+                button2.Image = Properties.Resources.point2_blue;
             });
             var opponentId = 1 - _player.Id;
             var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
@@ -305,6 +308,11 @@ namespace CollapseGameFormsApp
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             AnimateWindow(Handle, 500, AnimateWindowFlags.AW_BLEND | AnimateWindowFlags.AW_HIDE);
+        }
+
+        private void gameField_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }
