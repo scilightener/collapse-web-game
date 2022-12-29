@@ -1,27 +1,36 @@
-﻿using GameLogic;
+﻿using System.Drawing;
+using GameLogic;
 
 namespace TCPServer;
 
 public class GameProvider
 {
-    private Board _board;
-    private Player[] _players;
-    private int movesCount = 1;
+    private readonly Board _board;
+    private readonly Player[] _players;
+    private int _movesCount;
     public GameProvider(int rows, int columns, params Player[] players)
     {
         _board = new Board(rows, columns, players);
         _players = players;
     }
 
-    internal bool MakeMove(int playerID, int x, int y)
+    internal bool MakeMove(int playerId, int x, int y)
     {
-        var currentPlayer = movesCount % 2 == 1 ? _players[0] : _players[1];
-        if (currentPlayer.Id != playerID) return false;
-        movesCount++;
+        var currentPlayer = _players[_movesCount % 2];
+        if (currentPlayer.Id != playerId) return false;
+        _movesCount++;
         return _board.MakeMove(currentPlayer, x, y);
     }
 
     public bool IsGameEnded => _board.Status == GameStatus.Ended;
 
-    public int GetWinnerId() => IsGameEnded ? _players.First(p => _board.GetPlayerStatus(p) == PlayerStatus.Winner).Id : -1;
+    public int GetWinnerId() =>
+        IsGameEnded ? _players.First(p => _board.GetPlayerStatus(p) == PlayerStatus.Winner).Id : -1;
+
+    public static Color GetColorForPlayer(int id) => id switch
+    {
+        0 => Color.Red,
+        1 => Color.Blue,
+        _ => Color.White,
+    };
 }

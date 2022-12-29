@@ -1,67 +1,60 @@
+using GameLogic;
 using TCPClient;
-using XProtocol.Serializator;
+using XProtocol.Serializer;
 using XProtocol.XPackets;
 using XProtocol;
+using System.Resources;
 
 namespace CollapseGameFormsApp
 {
-    public partial class Form1 : Form
+    public partial class Form1
     {
-        private XClient client;
-        private Button[] buttons;
-        private Dictionary<Button, XPacketMove> packets;
+        private readonly XClient _client;
+        private GameProvider _gp = null!;
+        private Player _player = null!;
+        private readonly List<Player> _players = new();
         
         public Form1()
         {
             InitializeComponent();
-            client = new XClient();
-            InitialiseButtons();
-            foreach(var but in buttons)
-                but.Visible = false;
+            _client = new XClient();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private static (int x, int y) GetButtonCoordinates(Control b) =>
+            ((b.TabIndex - 1) / 5, (b.TabIndex - 1) % 5);
+
+        private void startButton_Click(object sender, EventArgs e)
         {
-            button1.Visible = false;
-            client.Connect("127.0.0.1", 4910);
-            client.OnPacketReceive = OnPacketRecieve;
-            client.QueuePacketSend(
+            startButton.Visible = false;
+            _client.Connect("127.0.0.1", 4910);
+            _client.OnPacketReceive = OnPacketReceive;
+            _client.QueuePacketSend(
                 XPacketConverter.Serialize(
                     XPacketType.Handshake,
-                    new XPacketHandshake
-                    {
-                    })
+                    new XPacketHandshake())
                     .ToPacket());
-        }
-
-        private void InitialiseButtons()
-        {
-            buttons = new[] {
-                button2, button3, button4, button5, button6,
-                button7, button8, button9, button10, button11,
-                button12, button13, button14, button15, button16,
-                button17, button18, button19, button20, button21,
-                button22, button23, button24, button25, button26
-            };
         }
 
         private void OnClickGameField(int x, int y)
         {
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
+            var move = _gp.MakeMove(_player.Id, x, y);
+            if (!move) return;
+            _client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Move, new XPacketMove()
             {
-                X= x, Y= y
+                X = x, Y = y
             }).ToPacket());
+            RunInUi(() =>
+            {
+                ((ListBoxItem)players.Items[0]).SetMove(false);
+                ((ListBoxItem)players.Items[1]).SetMove(true);
+                players.Refresh();
+            });
         }
 
-
-        private void OnPacketRecieve(byte[] packet)
+        private void OnPacketReceive(byte[] packet)
         {
             var parsed = XPacket.Parse(packet);
-
-            if (parsed != null)
-            {
-                ProcessIncomingPacket(parsed);
-            }
+            if (parsed != null) ProcessIncomingPacket(parsed);
         }
 
         private void ProcessIncomingPacket(XPacket packet)
@@ -74,16 +67,19 @@ namespace CollapseGameFormsApp
                     ProcessSuccessfulRegistration(packet);
                     break;
                 case XPacketType.StartGame:
-                    ProcessStartGame(packet);
+                    ProcessStartGame();
                     break;
                 case XPacketType.MoveResult:
                     ProcessMoveResult(packet);
                     break;
+                case XPacketType.Move:
+                    ProcessMove(packet);
+                    break;
                 case XPacketType.Pause:
-                    ProcessPause(packet);
+                    ProcessPause();
                     break;
                 case XPacketType.PauseEnded:
-                    ProcessPauseEnded(packet);
+                    ProcessPauseEnded();
                     break;
                 case XPacketType.Winner:
                     ProcessWinner(packet);
@@ -98,45 +94,132 @@ namespace CollapseGameFormsApp
         private void ProcessSuccessfulRegistration(XPacket packet)
         {
             var successfulRegistration = XPacketConverter.Deserialize<XPacketSuccessfulRegistration>(packet);
-            foreach (var but in buttons)
-                but.Visible = true;
-            //TODO: go to game
-
+            var playerId = successfulRegistration.Id;
+            _player = new Player(playerId, $"Player{playerId}", GameProvider.GetColorForPlayer(playerId));
+            _players.Add(_player);
+            RunInUi(() => Text = _player.Name);
         }
 
-        private void ProcessStartGame(XPacket packet)
-        {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+        private void RunInUi(Action action) => BeginInvoke(action);
 
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+        private void ProcessStartGame()
+        {
+            RunInUi(() =>
+            {
+                gameField.Visible = true;
+                pause.Visible = true;
+            });
+            var opponentId = 1 - _player.Id;
+            var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
+            _players.Add(opponent);
+            var updater = () =>
+            {
+                RunInUi(() =>
+                {
+                    foreach (var control in gameField.Controls)
+                    {
+                        if (control is not Button button) continue;
+                        (int x, int y) = GetButtonCoordinates(button);
+                        button.Image = GetImageByCoordinates(x, y);
+                    }
+                });
+                Thread.Sleep(300);
+            };
+            _gp = new GameProvider(5, 5, updater, _player, opponent);
+            RunInUi(() => 
+            { 
+                foreach (var player in _players)
+                    players.Items.Add(new ListBoxItem(player.Color, player.Name, player.Id));
+                if (_player.Id == _gp.WhoMoves())
+                    ((ListBoxItem)players.Items[0]).SetMove(true);
+                else ((ListBoxItem)players.Items[1]).SetMove(true);
+                players.Refresh();
+            });
+        }
+
+        private Image? GetImageByCoordinates(int x, int y)
+        {
+            var count = _gp.GetCountPointsByCoordinates(x, y);
+            var color = _gp.GetColorByCoordinates(x, y);
+            return count switch
+            {
+                1 when color == Color.Blue => Properties.Resources.point1_blue,
+                1 when color == Color.Red => Properties.Resources.point1_red,
+                2 when color == Color.Blue => Properties.Resources.point2_blue,
+                2 when color == Color.Red => Properties.Resources.point2_red,
+                3 when color == Color.Blue => Properties.Resources.point3_blue,
+                3 when color == Color.Red => Properties.Resources.point3_red,
+                _ => null,
+            };
         }
 
         private void ProcessMoveResult(XPacket packet)
         {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
+            var moveResult = XPacketConverter.Deserialize<XPacketMoveResult>(packet);
 
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            if (moveResult.Successful) return;
+            RunInUi(() =>
+            {
+                gameField.Visible = false;
+                pause.Visible = false;
+                gameResultDialog.Visible = true;
+                gameResultMessage.Text = "You are cheater! Blame on you!";
+            });
+            EndGame();
         }
-
-        private void ProcessPause(XPacket packet)
+        
+        private void ProcessMove(XPacket packet)
         {
-            var pause = XPacketConverter.Deserialize<XPacketPause>(packet);
-            //TODO: Pause game
+            var move = XPacketConverter.Deserialize<XPacketMove>(packet);
+            _gp.MakeMove(_players.First(p => p.Id != _player.Id).Id, move.X, move.Y);
+            RunInUi(() =>
+            {
+                ((ListBoxItem)players.Items[0]).SetMove(true);
+                ((ListBoxItem)players.Items[1]).SetMove(false);
+                players.Refresh();
+            });
         }
 
-        private void ProcessPauseEnded(XPacket packet)
-        {
-            var pauseEnded = XPacketConverter.Deserialize<XPacketPauseEnded>(packet);
-            //TODO: Unpaused game
-        }
+        private void ProcessPause() =>
+            RunInUi(() =>
+            {
+                gameField.Enabled = false;
+                pause.Visible = false;
+            });
+
+        private void ProcessPauseEnded() =>
+            RunInUi(() =>
+            {
+                gameField.Enabled = true;
+                pause.Visible = true;
+            });
 
         private void ProcessWinner(XPacket packet)
         {
-            var handshake = XPacketConverter.Deserialize<XPacketHandshake>(packet);
-
-            client.QueuePacketSend(XPacketConverter.Serialize(XPacketType.Handshake, handshake).ToPacket());
+            var winner = XPacketConverter.Deserialize<XPacketWinner>(packet);
+            players.Items.Clear();
+            RunInUi(() =>
+            {
+                gameField.Visible = false;
+                pause.Visible = false;
+                gameResultDialog.Visible = true;
+                if (winner.IdWinner != _player.Id)
+                    gameResultMessage.Text = _gp.IsGameEnded ? "You are looser! :(" : "You are cheater! Blame on you!";
+                else gameResultMessage.Text = "Congratulations! You are winner!";
+            });
         }
 
+        private void EndGame()
+        {
+            if (_client.Connected)
+                _client.QueuePacketSend(
+                    XPacketConverter.Serialize(
+                        XPacketType.EndGame,
+                        new XPacketEndGame { PlayerId = _player.Id })
+                        .ToPacket());
+        }
+
+        #region GameField buttons click events
         private void button2_Click(object sender, EventArgs e) => OnClickGameField(0, 0);
 
         private void button3_Click(object sender, EventArgs e) => OnClickGameField(0, 1);
@@ -186,5 +269,63 @@ namespace CollapseGameFormsApp
         private void button25_Click(object sender, EventArgs e) => OnClickGameField(4, 3);
 
         private void button26_Click(object sender, EventArgs e) => OnClickGameField(4, 4);
+        #endregion
+
+        private void continueGame_Click(object sender, EventArgs e)
+        {
+            RunInUi(() =>
+            {
+                gameField.Enabled = true;
+                pause.Visible = true;
+                menu.Visible = false;
+                
+            });
+            _client.QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.PauseEnded, new XPacketPauseEnded()).ToPacket());
+        }
+
+        private void pause_Click(object sender, EventArgs e)
+        {
+            RunInUi(() =>
+            {
+                gameField.Enabled = false;
+                menu.Visible = true;
+                pause.Visible = false;
+            });
+            _client.QueuePacketSend(XPacketConverter
+                .Serialize(XPacketType.Pause, new XPacketPause()).ToPacket());
+        }
+
+        private void quitGame_Click(object sender, EventArgs e) => Dispose();
+
+        private void players_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0 || players.Items.Count == 0) return;
+            if (players.Items[e.Index] is not ListBoxItem item) return;
+            e.DrawBackground();
+            e.DrawFocusRectangle();
+            e.Graphics.DrawString(
+                item.Message,
+                players.Font,
+                new SolidBrush(item.ItemColor),
+                e.Bounds);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            AnimateWindow(Handle, 500,
+                AnimateWindowFlags.AW_BLEND |
+                AnimateWindowFlags.AW_VER_POSITIVE);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            AnimateWindow(Handle, 500, AnimateWindowFlags.AW_BLEND | AnimateWindowFlags.AW_HIDE);
+        }
+
+        private void gameField_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

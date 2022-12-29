@@ -2,9 +2,9 @@
 
 namespace XProtocol.XPackets
 {
-    public class XPacketStartGame
+    public class XPacketEndGame
     {
         [XField(1)]
-        public bool GameStarted = true;
+        public int PlayerId;
     }
 }

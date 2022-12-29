@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace XProtocol
+﻿namespace XProtocol
 {
     public static class XPacketTypeManager
     {
@@ -14,6 +11,7 @@ namespace XProtocol
             RegisterType(XPacketType.Move, 1, 1);
             RegisterType(XPacketType.Pause, 1, 2);
             RegisterType(XPacketType.PauseEnded, 1, 3);
+            RegisterType(XPacketType.EndGame, 1, 4);
             RegisterType(XPacketType.SuccessfulRegistration, 2, 0);
             RegisterType(XPacketType.StartGame, 2, 1);
             RegisterType(XPacketType.MoveResult, 2, 2);

@@ -1,21 +1,23 @@
-﻿using System.Net;
+﻿using GameLogic;
+using System.Net;
 using System.Net.Sockets;
 
 namespace TCPServer
 {
-    internal class XServer
+    internal class XServer : IDisposable
     {
-        private readonly Socket _socket;
-        internal readonly List<ConnectedClient> _clients;
-        internal GameProvider gp;
+        internal readonly List<ConnectedClient> Clients;
+        internal GameProvider Gp = null!;
+        private int _currentId;
 
         private bool _listening;
         private bool _stopListening;
+        private readonly Socket _socket;
 
         public XServer()
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _clients = new List<ConnectedClient>();
+            Clients = new List<ConnectedClient>();
         }
 
         public void Start()
@@ -59,11 +61,28 @@ namespace TCPServer
                     client = _socket.Accept();
                 } catch { return; }
 
-                Console.WriteLine($"[!] Accepted client from {(IPEndPoint) client.RemoteEndPoint}");
-
-                var c = new ConnectedClient(client, this, gp);
-                _clients.Add(c);
+                Console.WriteLine($"[!] Accepted client from {client.RemoteEndPoint as IPEndPoint}");
+                var c = new ConnectedClient(client, this, CreateNewPlayer());
+                Clients.Add(c);
             }
+        }
+
+        private Player CreateNewPlayer()
+        {
+            var id = _currentId++;
+            var color = GameProvider.GetColorForPlayer(id);
+            var player = new Player(id, $"Player{id}", color);
+
+            if (_currentId == 2)
+                Gp = new GameProvider(5, 5, Clients.Select(c => c.Player).Concat(new[] { player }).ToArray());
+            return player;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            _socket.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

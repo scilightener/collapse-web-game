@@ -8,6 +8,7 @@ public class Board
     public int Rows => _rows;
     public int Columns => _columns;
     public GameStatus Status { get; private set; } = Started;
+    public Action UpdateUi { get; set; } = () => { };
 
     private readonly int _rows;
     private readonly int _columns;
@@ -50,16 +51,18 @@ public class Board
             Status == Ended)
             return false;
         var cell = _cells[x, y];
-        if (player.MovesCount == 0)
+        if (player.MovesCount == 0 && cell.Owner is null && UpdateCell(3, x, y, player))
         {
             player.MakeMove();
-            return cell.Owner is null && UpdateCell(3, x, y, player);
+            Update();
+            return true;
         }
-
+        
         if ((cell.Owner?.Id ?? -1) != player.Id)
             return false;
         UpdateCell(1, x, y, player);
-        while (!_isBoardOk) Update();
+        while (!_isBoardOk)
+            Update();
         _isBoardOk = false;
         return true;
     }
@@ -73,11 +76,13 @@ public class Board
             UpdateCell(1, cell.X + 1, cell.Y, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y - 1, cell.Owner!);
             UpdateCell(1, cell.X, cell.Y + 1, cell.Owner!);
+            _playersOwnedCells[cell.Owner!.Id]--;
             cell.ResetCountPoints();
         }
 
         _isBoardOk = _changedCells.Count == 0;
         _changedCells.Clear();
+        UpdateUi.Invoke();
     }
 
     private bool UpdateCell(int count, int x, int y, Player initiator)
