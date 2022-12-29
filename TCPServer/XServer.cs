@@ -49,17 +49,11 @@ namespace TCPServer
         {
             while (true)
             {
-                if (_stopListening)
-                {
-                    return;
-                }
+                if (_stopListening) return;
 
                 Socket client;
-
-                try
-                {
-                    client = _socket.Accept();
-                } catch { return; }
+                try { client = _socket.Accept(); }
+                catch { return; }
 
                 Console.WriteLine($"[!] Accepted client from {client.RemoteEndPoint as IPEndPoint}");
                 var c = new ConnectedClient(client, this, CreateNewPlayer());
