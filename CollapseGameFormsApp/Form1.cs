@@ -108,8 +108,6 @@ namespace CollapseGameFormsApp
             {
                 gameField.Visible = true;
                 pause.Visible = true;
-                button2.Size = new Size(90, 90);
-                button2.Image = Properties.Resources.point2_blue;
             });
             var opponentId = 1 - _player.Id;
             var opponent = new Player(opponentId, $"Player{opponentId}", GameProvider.GetColorForPlayer(opponentId));
@@ -122,8 +120,7 @@ namespace CollapseGameFormsApp
                     {
                         if (control is not Button button) continue;
                         (int x, int y) = GetButtonCoordinates(button);
-                        button.Text = _gp.GetCountPointsByCoordinates(x, y).ToString();
-                        button.BackColor = _gp.GetColorByCoordinates(x, y);
+                        button.Image = GetImageByCoordinates(x, y);
                     }
                 });
                 Thread.Sleep(300);
@@ -138,6 +135,22 @@ namespace CollapseGameFormsApp
                 else ((ListBoxItem)players.Items[1]).SetMove(true);
                 players.Refresh();
             });
+        }
+
+        private Image? GetImageByCoordinates(int x, int y)
+        {
+            var count = _gp.GetCountPointsByCoordinates(x, y);
+            var color = _gp.GetColorByCoordinates(x, y);
+            return count switch
+            {
+                1 when color == Color.Blue => Properties.Resources.point1_blue,
+                1 when color == Color.Red => Properties.Resources.point1_red,
+                2 when color == Color.Blue => Properties.Resources.point2_blue,
+                2 when color == Color.Red => Properties.Resources.point2_red,
+                3 when color == Color.Blue => Properties.Resources.point3_blue,
+                3 when color == Color.Red => Properties.Resources.point3_red,
+                _ => null,
+            };
         }
 
         private void ProcessMoveResult(XPacket packet)

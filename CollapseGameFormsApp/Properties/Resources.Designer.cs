@@ -63,6 +63,26 @@ namespace CollapseGameFormsApp.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap point1_blue {
+            get {
+                object obj = ResourceManager.GetObject("point1_blue", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap point1_red {
+            get {
+                object obj = ResourceManager.GetObject("point1_red", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap point2_blue {
             get {
                 object obj = ResourceManager.GetObject("point2_blue", resourceCulture);
