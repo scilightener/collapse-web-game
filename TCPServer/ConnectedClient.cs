@@ -96,7 +96,7 @@ namespace TCPServer
             QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.SuccessfulRegistration, successfulRegistration).ToPacket());
             
-            if (_server.Clients.Count > 1)
+            if (_server.Clients.Count == 2)
                 foreach (var client in _server.Clients)
                     client.QueuePacketSend(XPacketConverter
                 .Serialize(XPacketType.StartGame, new XPacketStartGame()).ToPacket());
