@@ -17,7 +17,8 @@
 
 # About the game
 * This is a desktop game for two players, a copy of the mobile version of "Collapse game"
+* Written in C# with WinForms
 * Player interaction takes place over the network through a self-written server that connects two players and makes sure that none of them cheat
 * If the server notices that any of the players violates the rules (trying to make an invalid move), then it removes him from the game, assigning the victory to the remaining player
 * All communication between the players and the server takes place using a self-written protocol, the code for which was taken from [this article](https://tech-geek.ru/create-network-protocol/)
-* Well, actually, the code isn't well-written, neither its parts are separated in well order (like what S from SOLID states for). But it works!
+* Well, actually, some parts of the code aren't well-written, neither the are segregated properly (like what SOLID stands for). But at least it works!
